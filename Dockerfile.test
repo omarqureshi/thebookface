@@ -1,0 +1,24 @@
+# Test image: Ruby + Chromium, for running the Cucumber suite (including the
+# headless-Chrome @javascript scenarios) against the compose DynamoDB + MinIO.
+#
+#   docker compose --profile test run --rm tests
+FROM ruby:4.0-bookworm
+
+# Chromium for cuprite/ferrum (the @javascript image-upload scenario).
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends \
+       chromium fonts-liberation libnss3 libgbm1 ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+ENV CHROMIUM_PATH=/usr/bin/chromium
+
+ENV RAILS_ENV=test \
+    BUNDLE_PATH=/bundle \
+    BUNDLE_APP_CONFIG=/bundle
+WORKDIR /app
+
+# Install gems into /bundle (outside /app, which the compose mount overlays).
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+# App source is mounted at /app by compose; default command runs the suite.
+CMD ["bin/cucumber"]

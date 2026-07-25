@@ -1,0 +1,9 @@
+{
+  "name": "the-bookface-infra",
+  "private": true,
+  "description": "CDK toolchain for The Bookface. The Ruby CDK talks to the jsii kernel shipped by @jsii/runtime; aws-cdk is the deploy CLI.",
+  "dependencies": {
+    "@jsii/runtime": "^1",
+    "aws-cdk": "^2"
+  }
+}

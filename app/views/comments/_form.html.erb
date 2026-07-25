@@ -1,0 +1,9 @@
+<%# Comment / reply form. `parent_path` decides where it lands: nil = a top-level
+    comment on the post; a comment's path = a nested reply under it. %>
+<%= form_with model: Comment.new, url: post_comments_path(post), method: :post, class: "comment-form" do |f| %>
+  <%= hidden_field_tag "comment[parent_path]", parent_path %>
+  <%= f.text_area :body, rows: 2, class: "comment-form__input", placeholder: label, "aria-label": label %>
+  <div class="comment-form__actions">
+    <%= f.submit(parent_path.present? ? "Reply" : "Comment", class: "btn btn--primary btn--sm") %>
+  </div>
+<% end %>

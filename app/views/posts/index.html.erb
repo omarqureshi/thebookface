@@ -1,0 +1,20 @@
+<% content_for :title, "The Bookface" %>
+
+<div class="feed">
+  <% if signed_in? %>
+    <%= render "composer", post: @post || Post.new %>
+  <% else %>
+    <div class="card signin-prompt">
+      <p><strong>Welcome to The Bookface.</strong> The place to share what's on your mind, then argue about it in deeply nested comment threads.</p>
+      <%= render "shared/signin", big: true %>
+    </div>
+  <% end %>
+
+  <% if @posts.empty? %>
+    <div class="card empty">Nothing on The Bookface yet. Be the first to post something.</div>
+  <% else %>
+    <% @posts.each do |post| %>
+      <%= render "post", post: post %>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,27 @@
+<%# Compose box for a new post. `post` is a Post (possibly with errors). Images
+    are uploaded straight to S3 by the uploader Stimulus controller; the keys ride
+    in a hidden field the form submits. %>
+<div class="card composer" data-controller="uploader" data-uploader-url-value="<%= uploads_path %>">
+  <%= form_with model: post, url: posts_path, method: :post do |f| %>
+    <% if post.errors.any? %>
+      <div class="field-errors"><%= post.errors.full_messages.to_sentence %></div>
+    <% end %>
+    <div class="composer__row">
+      <span class="avatar"><%= current_user.initials %></span>
+      <%= f.text_area :body,
+            rows: 2,
+            class: "composer__input",
+            placeholder: "What's on your mind, #{current_user.name.split.first}?" %>
+    </div>
+
+    <%= hidden_field_tag "post[media_json]", "[]", data: { uploader_target: "field" } %>
+    <%= file_field_tag "images", accept: "image/*", multiple: true, class: "is-hidden",
+          data: { uploader_target: "input", action: "uploader#pick" } %>
+    <div class="composer__previews" data-uploader-target="previews"></div>
+
+    <div class="composer__actions">
+      <button type="button" class="btn btn--ghost" data-action="uploader#open">📷 Photo</button>
+      <%= f.submit "Post", class: "btn btn--primary", data: { uploader_target: "submit" } %>
+    </div>
+  <% end %>
+</div>

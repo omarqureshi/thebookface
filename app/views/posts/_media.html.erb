@@ -1,0 +1,11 @@
+<%# Attached images for a post. `post` responds to media_items. %>
+<% items = post.media_items %>
+<% if items.any? %>
+  <div class="media media--<%= [items.size, 4].min %>">
+    <% items.each do |m| %>
+      <a href="<%= media_url(m["key"]) %>" target="_blank" rel="noopener" class="media__item">
+        <img src="<%= media_url(m["key"]) %>" alt="" loading="lazy">
+      </a>
+    <% end %>
+  </div>
+<% end %>

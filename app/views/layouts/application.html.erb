@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "The Bookface" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="The Bookface">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <%= link_to root_path, class: "brand" do %>
+          <span class="brand__mark">b</span>
+          <span class="brand__word">The&nbsp;Bookface</span>
+        <% end %>
+
+        <div class="topbar__spacer"></div>
+
+        <% if signed_in? %>
+          <span class="avatar" title="<%= current_user.email %>"><%= current_user.initials %></span>
+          <span class="topbar__name"><%= current_user.name %></span>
+          <%= button_to "Log out", logout_path, method: :delete, class: "btn btn--ghost" %>
+        <% else %>
+          <%= render "shared/signin" %>
+        <% end %>
+      </div>
+    </header>
+
+    <main class="page">
+      <% if flash.any? %>
+        <div class="flashes">
+          <% flash.each do |type, message| %>
+            <div class="flash flash--<%= type %>"><%= message %></div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>

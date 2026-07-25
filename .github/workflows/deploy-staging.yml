@@ -1,0 +1,24 @@
+name: Deploy Staging
+
+# Staging is continuous delivery: every push to main redeploys
+# TheBookface-staging. Also runnable on demand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      stack: TheBookface-staging
+      environment: staging
+    secrets: inherit

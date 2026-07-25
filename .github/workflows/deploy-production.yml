@@ -1,0 +1,23 @@
+name: Deploy Production
+
+# Production is deliberate: manual dispatch only. Add required reviewers to the
+# "production" environment (repo Settings -> Environments) to gate every run
+# behind an approval.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      stack: TheBookface-prod
+      environment: production
+    secrets: inherit

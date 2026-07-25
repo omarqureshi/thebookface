@@ -1,0 +1,17 @@
+<%# Sign-in controls for a signed-out visitor. In local dev (no Cognito) this is
+    the persona picker; deployed it's the Google button. `big` toggles size. %>
+<% big = local_assigns.fetch(:big, false) %>
+<% if dev_auth? %>
+  <div class="signin signin--dev">
+    <span class="signin__label">Dev sign-in:</span>
+    <% ApplicationHelper::DEV_PERSONAS.each do |key, name| %>
+      <%= button_to name, dev_login_path(persona: key), method: :post,
+            class: "btn btn--dev#{' btn--big' if big}", data: { turbo: false } %>
+    <% end %>
+  </div>
+<% else %>
+  <%= button_to "/auth/cognito", method: :post,
+        class: "btn btn--google#{' btn--big' if big}", data: { turbo: false } do %>
+    <span class="g">G</span> Continue with Google
+  <% end %>
+<% end %>

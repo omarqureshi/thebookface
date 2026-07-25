@@ -1,0 +1,49 @@
+GEM
+  remote: https://rubygems.omarqureshi.net/
+  specs:
+    aws-cdk-asset-awscli-v1 (0.0.0.20260725025349)
+      base64 (~> 0.2)
+      jsii-ruby-runtime (= 0.0.0.20260725025349)
+    aws-cdk-asset-node-proxy-agent-v6 (0.0.0.20260725025349)
+      base64 (~> 0.2)
+      jsii-ruby-runtime (= 0.0.0.20260725025349)
+    aws-cdk-cloud-assembly-schema (0.0.0.20260725025349)
+      base64 (~> 0.2)
+      jsii-ruby-runtime (= 0.0.0.20260725025349)
+    aws-cdk-lib (0.0.0.20260725025349)
+      aws-cdk-asset-awscli-v1 (= 0.0.0.20260725025349)
+      aws-cdk-asset-node-proxy-agent-v6 (= 0.0.0.20260725025349)
+      aws-cdk-cloud-assembly-schema (= 0.0.0.20260725025349)
+      base64 (~> 0.2)
+      constructs (= 0.0.0.20260725025349)
+      jsii-ruby-runtime (= 0.0.0.20260725025349)
+    constructs (0.0.0.20260725025349)
+      base64 (~> 0.2)
+      jsii-ruby-runtime (= 0.0.0.20260725025349)
+    jsii-ruby-runtime (0.0.0.20260725025349)
+      base64 (~> 0.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.3.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  aws-cdk-lib!
+
+CHECKSUMS
+  aws-cdk-asset-awscli-v1 (0.0.0.20260725025349) sha256=e5b3e1442d4a21a26bc09ee56f59f6f5b3f33b6e4ea48009d5e8032df7558a04
+  aws-cdk-asset-node-proxy-agent-v6 (0.0.0.20260725025349) sha256=f88aa6ffacfe842c957844df066bbdc3e746ee19fa69d86bffe895150a1aab42
+  aws-cdk-cloud-assembly-schema (0.0.0.20260725025349) sha256=7053bdc54c325564ae90a6ed008a740e5e362367f0f5297dc6f293ad5cbd2dc6
+  aws-cdk-lib (0.0.0.20260725025349) sha256=954e44326052b1d2df35f2febef206168e15ca5f02d56449c10c3b1dc8fae2b1
+  base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
+  bundler (4.0.11) sha256=5bcec0fb78302e48d02ee46f10ee6e6942be647ba5b44a6d1ddfda9a240ce785
+  constructs (0.0.0.20260725025349) sha256=b04203c068a099d9f9ae632b77363cf145c89f4aa91d2db7af1acc4ca3c01a87
+  jsii-ruby-runtime (0.0.0.20260725025349) sha256=c0a9378a9ea8d02a97762748edb295d637b9678f81409a844cbbf174e6c1e304
+
+BUNDLED WITH
+  4.0.11

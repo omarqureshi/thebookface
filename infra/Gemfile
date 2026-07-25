@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+# The Ruby CDK, from its preview feed. One line pulls the whole closure
+# (constructs, the asset packages, the jsii runtime) as pinned transitive
+# dependencies. At GA this collapses to a plain RubyGems.org dependency.
+gem "aws-cdk-lib", source: "https://rubygems.omarqureshi.net"

@@ -1,0 +1,38 @@
+<% content_for :title, "#{@post.author.name} on The Bookface" %>
+
+<div class="feed">
+  <%= link_to "← Back to the feed", root_path, class: "backlink" %>
+
+  <article class="card post">
+    <header class="post__head">
+      <span class="avatar"><%= @post.author.initials %></span>
+      <div>
+        <div class="post__author"><%= @post.author.name %></div>
+        <div class="post__time"><%= time_ago_in_words(@post.created_at) %> ago</div>
+      </div>
+    </header>
+    <% if @post.body.present? %><div class="post__body"><%= simple_format(@post.body) %></div><% end %>
+    <%= render "media", post: @post %>
+    <%= render "reactions/bar", post: @post, subject: @post, mine: @my_reactions["post"] %>
+  </article>
+
+  <section class="card thread" id="comments">
+    <h2 class="thread__title"><%= pluralize(@comments.size, "comment") %></h2>
+
+    <% if signed_in? %>
+      <%= render "comments/form", post: @post, parent_path: nil, label: "Comment on this post…" %>
+    <% else %>
+      <p class="muted">Sign in with Google to join the conversation.</p>
+    <% end %>
+
+    <div class="thread__list">
+      <% if @comments.empty? %>
+        <p class="muted">No comments yet — start the thread.</p>
+      <% else %>
+        <% @comments.each do |comment| %>
+          <%= render "comments/comment", comment: comment, post: @post, my_reactions: @my_reactions %>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+</div>

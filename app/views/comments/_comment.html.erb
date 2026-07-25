@@ -1,0 +1,27 @@
+<%# One comment in the thread. Indentation comes straight from `depth` (the number
+    of segments in the materialized path), so the flat pre-ordered array renders as
+    a tree with no recursion. Depth is capped so very deep replies stay on screen. %>
+<% indent = [comment.depth, 8].min %>
+<div class="comment" id="c-<%= comment.path.tr('/', '-') %>" style="--indent: <%= indent %>">
+  <span class="avatar avatar--sm"><%= comment.author.initials %></span>
+  <div class="comment__body">
+    <div class="comment__bubble">
+      <span class="comment__author"><%= comment.author.name %></span>
+      <div class="comment__text"><%= simple_format(comment.body) %></div>
+    </div>
+    <div class="comment__meta">
+      <span class="comment__time"><%= time_ago_in_words(comment.created_at) %> ago</span>
+      <% if signed_in? %>
+        <details class="reply">
+          <summary class="reply__toggle">Reply</summary>
+          <%= render "comments/form",
+                post: post,
+                parent_path: comment.path,
+                label: "Reply to #{comment.author.name}…" %>
+        </details>
+      <% end %>
+    </div>
+    <%= render "reactions/bar", post: post, subject: comment,
+          mine: local_assigns[:my_reactions]&.dig(comment.reaction_target) %>
+  </div>
+</div>

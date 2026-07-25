@@ -1,0 +1,60 @@
+name: Deploy (reusable)
+
+# Shared deploy pipeline for The Bookface, called by the staging / production
+# workflows. It builds the Rails Docker image asset and runs `cdk deploy` for
+# the requested stack. AWS auth is OIDC (no static keys); the app secrets come
+# from whichever GitHub environment the caller selects.
+on:
+  workflow_call:
+    inputs:
+      stack:
+        description: CDK stack to deploy (e.g. TheBookface-staging)
+        required: true
+        type: string
+      environment:
+        description: GitHub environment whose secrets + protection rules apply
+        required: true
+        type: string
+
+permissions:
+  id-token: write   # assume the AWS deploy role via OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby (the CDK app)          # reads .ruby-version (4.0.5)
+        uses: ruby/setup-ruby@v1
+
+      - name: Set up Node (jsii runtime + cdk CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: infra/package-lock.json
+
+      - name: Install the CDK toolchain
+        working-directory: infra
+        run: |
+          npm ci          # @jsii/runtime (the kernel the Ruby CDK talks to) + the aws-cdk CLI
+          bundle install  # the Ruby CDK itself (aws-cdk-lib, from the preview feed)
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          aws-region: us-east-1
+
+      - name: Deploy ${{ inputs.stack }}
+        working-directory: infra
+        env:
+          # The stack reads these from ENV (with a context fallback), so passing
+          # them as env keeps the secret off the command line and out of logs.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+        run: npx cdk deploy "${{ inputs.stack }}" --require-approval never

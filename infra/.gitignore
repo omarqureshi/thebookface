@@ -1,0 +1,8 @@
+# CDK toolchain artifacts
+node_modules/
+cdk.out/
+.cdk.staging/
+
+# Bundled Ruby CDK
+/.bundle/
+/vendor/bundle/

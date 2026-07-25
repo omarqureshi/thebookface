@@ -1,0 +1,21 @@
+<%# A post card in the feed. `post` is a Post. %>
+<article class="card post">
+  <header class="post__head">
+    <span class="avatar"><%= post.author.initials %></span>
+    <div>
+      <div class="post__author"><%= post.author.name %></div>
+      <div class="post__time"><%= time_ago_in_words(post.created_at) %> ago</div>
+    </div>
+  </header>
+
+  <% if post.body.present? %><div class="post__body"><%= simple_format(post.body) %></div><% end %>
+  <%= render "media", post: post %>
+
+  <%= render "reactions/bar", post: post, subject: post, readonly: true %>
+
+  <footer class="post__foot">
+    <%= link_to post_path(post), class: "post__comments-link" do %>
+      Comments &amp; replies →
+    <% end %>
+  </footer>
+</article>
