@@ -43,6 +43,19 @@ jobs:
           npm ci          # @jsii/runtime (the kernel the Ruby CDK talks to) + the aws-cdk CLI
           bundle install  # the Ruby CDK itself (aws-cdk-lib, from the preview feed)
 
+      - name: Build the image + extract its precompiled assets
+        # Build the same image cdk will deploy (identical Dockerfile + context, so
+        # the cdk-deploy build below reuses this layer cache) and copy out its own
+        # precompiled /public/assets. Uploading exactly these to S3 guarantees the
+        # asset digests match the app's manifest byte-for-byte.
+        run: |
+          docker build -t bookface:assets .
+          cid=$(docker create bookface:assets)
+          rm -rf assets-dist && mkdir -p assets-dist
+          docker cp "$cid:/app/public/assets/." assets-dist/
+          docker rm "$cid" >/dev/null
+          echo "extracted $(find assets-dist -type f | wc -l) asset files"
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,3 +74,17 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
         run: npx cdk deploy "${{ inputs.stack }}" --require-approval never
+
+      - name: Publish assets to S3
+        # CloudFront serves /assets/* from this bucket; upload the image's own
+        # precompiled assets, immutable + long-cached (digest-stamped filenames).
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "${{ inputs.stack }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='AssetsBucket'].OutputValue" --output text)
+          if [ -n "$BUCKET" ] && [ "$BUCKET" != "None" ]; then
+            aws s3 sync assets-dist "s3://$BUCKET/assets/" \
+              --cache-control "public, max-age=31536000, immutable" --delete --no-progress
+            echo "published assets to s3://$BUCKET/assets/"
+          else
+            echo "no AssetsBucket output (fallback deploy) — assets stay on the Function URL"
+          fi

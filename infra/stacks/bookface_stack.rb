@@ -389,10 +389,24 @@ class BookfaceStack < AWSCDK::Stack
       cache_policy: AWSCDK::CloudFront::CachePolicy.CACHING_DISABLED,
       origin_request_policy: app_origin_request_policy
     }
-    # Digest-stamped assets are immutable, so cache them at the edge and they
-    # never cost a Lambda invocation.
+    # Static assets are served straight from S3 — the deploy uploads the image's
+    # own precompiled, digest-stamped assets, so an asset never reaches the Lambda
+    # even on a cache miss. The bucket is private; CloudFront reads it via Origin
+    # Access Control. Digest-stamped means immutable, so cache hard at the edge.
+    assets_bucket = AWSCDK::S3::Bucket.new(
+      self,
+      "Assets",
+      {
+        block_public_access: AWSCDK::S3::BlockPublicAccess.BLOCK_ALL,
+        encryption: AWSCDK::S3::BucketEncryption::S3_MANAGED,
+        removal_policy: @removal_policy,
+        auto_delete_objects: @auto_delete_objects
+      }
+    )
+    AWSCDK::CfnOutput.new(self, "AssetsBucket", { value: assets_bucket.bucket_name })
+
     assets_behavior = {
-      origin: origin,
+      origin: AWSCDK::CloudFrontOrigins::S3BucketOrigin.with_origin_access_control(assets_bucket),
       viewer_protocol_policy: AWSCDK::CloudFront::ViewerProtocolPolicy::REDIRECT_TO_HTTPS,
       cache_policy: AWSCDK::CloudFront::CachePolicy.CACHING_OPTIMIZED
     }
