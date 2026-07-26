@@ -41,3 +41,16 @@ jobs:
           echo "### origins + OAC ids:"
           aws cloudfront get-distribution-config --id "$DIST" \
             --query 'DistributionConfig.Origins.Items[].{Id:Id,Domain:DomainName,OAC:OriginAccessControlId}' --output json
+          echo "### distribution status:"
+          aws cloudfront get-distribution --id "$DIST" --query 'Distribution.Status' --output text
+          echo "### OAC config (must be lambda / always / sigv4):"
+          OACID=$(aws cloudfront get-distribution-config --id "$DIST" \
+            --query 'DistributionConfig.Origins.Items[0].OriginAccessControlId' --output text)
+          aws cloudfront get-origin-access-control --id "$OACID" \
+            --query 'OriginAccessControl.OriginAccessControlConfig' --output json
+          echo "### default behavior (origin-request policy forwards which headers?):"
+          ORP=$(aws cloudfront get-distribution-config --id "$DIST" \
+            --query 'DistributionConfig.DefaultCacheBehavior.OriginRequestPolicyId' --output text)
+          echo "originRequestPolicyId: $ORP"
+          aws cloudfront get-origin-request-policy --id "$ORP" \
+            --query 'OriginRequestPolicy.OriginRequestPolicyConfig.{Headers:HeadersConfig,Cookies:CookiesConfig.CookieBehavior,Query:QueryStringsConfig.QueryStringBehavior}' --output json
