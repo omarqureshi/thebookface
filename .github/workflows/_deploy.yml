@@ -46,7 +46,10 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          # AWS_ACCOUNT_ID is a repo variable, not a secret (the id isn't
+          # sensitive). Repo/org vars are available to reusable workflows
+          # automatically — no `inherit` needed.
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
           aws-region: us-east-1
 
       - name: Deploy ${{ inputs.stack }}
