@@ -21,7 +21,7 @@
         from within updates this same frame (create redirects back to the post). %>
     <%= turbo_frame_tag "post_#{post.id}_comments" do %>
       <%= link_to post_path(post), class: "post__comments-link" do %>
-        <%= pluralize(post.comment_count, "comment") %> &amp; replies
+        <%= pluralize(post.comment_count, "comment") %>
       <% end %>
     <% end %>
 
