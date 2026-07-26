@@ -2,6 +2,7 @@
 
 require "aws-cdk-lib"
 require_relative "../config/environments"
+require_relative "../support/dynamo_schema"
 
 # The entire deployment for The Bookface, in Ruby. This is what you'd otherwise
 # hand-write as a SAM/CloudFormation template — instead it's the CDK construct
@@ -63,41 +64,17 @@ class BookfaceStack < AWSCDK::Stack
     @removal_policy = config[:retain_data] ? AWSCDK::RemovalPolicy::RETAIN : AWSCDK::RemovalPolicy::DESTROY
     @auto_delete_objects = !config[:retain_data]
 
-    posts = AWSCDK::DynamoDB::TableV2.new(
-      self,
-      "Posts",
-      {
-        partition_key: { name: "id", type: AWSCDK::DynamoDB::AttributeType::STRING },
-        removal_policy: @removal_policy
-      }
-    )
-
-    # Hierarchical comments: partition by post (the whole thread is one Query),
-    # sort by the materialized `path` (so a Query returns the thread pre-ordered).
-    comments = AWSCDK::DynamoDB::TableV2.new(
-      self,
-      "Comments",
-      {
-        partition_key: { name: "post_id", type: AWSCDK::DynamoDB::AttributeType::STRING },
-        sort_key: { name: "path", type: AWSCDK::DynamoDB::AttributeType::STRING },
-        removal_policy: @removal_policy
-      }
-    )
-
-    # Reactions (Facebook-style: one emoji per user per target). This is the
-    # source of truth; a denormalized {emoji => count} cache lives on each Post
-    # and Comment item and is kept in step transactionally. Partitioned by post
-    # and sorted by "<user_sub>#<target>" so a user's reactions across a whole
-    # thread load in a single Query.
-    reactions = AWSCDK::DynamoDB::TableV2.new(
-      self,
-      "Reactions",
-      {
-        partition_key: { name: "post_id", type: AWSCDK::DynamoDB::AttributeType::STRING },
-        sort_key: { name: "sk", type: AWSCDK::DynamoDB::AttributeType::STRING },
-        removal_policy: @removal_policy
-      }
-    )
+    # Each table's schema — keys and indexes — is read straight from its Dynamoid
+    # model (see support/dynamo_schema.rb), so infra never restates what the app
+    # already declares:
+    #   * Posts, plus a by-recency GSI so the feed is one Query, not a Scan.
+    #   * Comments: partitioned by post, sorted by the materialized `path`, so a
+    #     Query returns the whole thread pre-ordered.
+    #   * Reactions (one emoji per user per target): partitioned by post, sorted
+    #     by "<user_sub>#<target>" so a user's reactions load in a single Query.
+    posts     = DynamoSchema.table(self, "Posts", Post, removal_policy: @removal_policy)
+    comments  = DynamoSchema.table(self, "Comments", Comment, removal_policy: @removal_policy)
+    reactions = DynamoSchema.table(self, "Reactions", Reaction, removal_policy: @removal_policy)
 
     # --- Media: private S3 bucket, browser-uploaded, CloudFront-served --------
     # Images are uploaded straight from the browser with presigned POSTs (bytes

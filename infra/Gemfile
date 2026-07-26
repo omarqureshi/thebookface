@@ -4,3 +4,9 @@ source "https://rubygems.org"
 # (constructs, the asset packages, the jsii runtime) as pinned transitive
 # dependencies. At GA this collapses to a plain RubyGems.org dependency.
 gem "aws-cdk-lib", source: "https://rubygems.omarqureshi.net"
+
+# Loaded at synth to read each table's schema straight from the app's Dynamoid
+# models (support/dynamo_schema.rb) — one source of truth for keys and indexes.
+# Pinned to the app's version (its Gemfile.lock) so infra reads the models with
+# exactly the Dynamoid the app runs — keep the two in step.
+gem "dynamoid", "3.13.1"
