@@ -232,6 +232,15 @@ class BookfaceStack < AWSCDK::Stack
     # The function only needs to *presign* uploads — s3:PutObject on the bucket.
     media.grant_put(rails)
 
+    # Dynamoid checks table existence via dynamodb:ListTables on first write. It's
+    # an account-level action with no resource-level scoping, so the per-table
+    # grant_read_write_data above can't include it — grant it explicitly on "*".
+    rails.add_to_role_policy(
+      AWSCDK::IAM::PolicyStatement.new(
+        { actions: ["dynamodb:ListTables"], resources: ["*"] }
+      )
+    )
+
     # A Function URL keeps the demo simple (Lamby speaks its payload format
     # natively). Its domain is unknown until now — which is why the app client's
     # callback URL and the function's Cognito env vars are wired up afterwards.
