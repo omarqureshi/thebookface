@@ -1,0 +1,35 @@
+name: Diag Staging Logs
+
+# Read-only: dumps recent Lambda logs to find the 500-on-create stack trace.
+# Delete once resolved.
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          aws-region: us-east-1
+
+      - name: Recent Lambda logs
+        run: |
+          set +e
+          FN=$(aws cloudformation describe-stack-resources --stack-name TheBookface-staging \
+            --query "StackResources[?ResourceType=='AWS::Lambda::Function' && starts_with(LogicalResourceId,'Rails')].PhysicalResourceId | [0]" \
+            --output text)
+          echo "function: $FN"
+          echo "=== last 20 min, error-ish lines ==="
+          aws logs tail "/aws/lambda/$FN" --since 20m --format short 2>&1 \
+            | grep -iE "error|exception|fatal|dynamoid|aws-sdk|Aws::|ValidationException|AccessDenied|undefined|NoMethod|NameError|ArgumentError|status=5|Completed 5|raise" \
+            | tail -60
+          echo "=== last 60 raw lines (context) ==="
+          aws logs tail "/aws/lambda/$FN" --since 20m --format short 2>&1 | tail -60
