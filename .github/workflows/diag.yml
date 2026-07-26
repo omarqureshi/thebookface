@@ -26,7 +26,7 @@ jobs:
           IDS=$(aws xray get-trace-summaries --start-time "$START" --end-time "$END" \
             --query 'TraceSummaries[].Id' --output text 2>&1)
           echo "### trace-summaries result:"; echo "$IDS" | head -3
-          NIDS=$(echo "$IDS" | tr '\t' '\n' | grep -E '^[0-9a-f-]{20,}$' | head -8 | tr '\n' ' ')
+          NIDS=$(echo "$IDS" | tr '\t' '\n' | grep -E '^[0-9a-f-]{20,}$' | head -5 | tr '\n' ' ')
           if [ -z "$NIDS" ]; then echo "!! no trace ids (propagation lag, or no xray:Get perms)"; exit 0; fi
           echo "### traces: $NIDS"
           aws xray batch-get-traces --trace-ids $NIDS --output json > traces.json 2>batch.err
