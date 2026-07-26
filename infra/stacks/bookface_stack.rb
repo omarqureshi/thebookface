@@ -289,6 +289,9 @@ class BookfaceStack < AWSCDK::Stack
 
     AWSCDK::CfnOutput.new(self, "AppUrl", { value: app_base })
     AWSCDK::CfnOutput.new(self, "FunctionUrl", { value: url.url })
+    # The generated function name, so the Run-task workflow can resolve which
+    # Lambda to invoke for one-off tasks (rake/runner) without guessing.
+    AWSCDK::CfnOutput.new(self, "FunctionName", { value: rails.function_name })
     AWSCDK::CfnOutput.new(self, "HostedUiDomain", { value: domain.base_url })
     AWSCDK::CfnOutput.new(self, "UserPoolId", { value: user_pool.user_pool_id })
     AWSCDK::CfnOutput.new(self, "MediaCdnUrl", { value: "https://#{media_cdn.distribution_domain_name}" })

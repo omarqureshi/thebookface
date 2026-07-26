@@ -1,0 +1,88 @@
+name: Run task
+
+# Run a Rails task (rake / runner) inside a deployed Bookface Lambda, on demand.
+#
+# The command runs *in the function* via Lamby's console runner — an invoke with
+# {"X_LAMBDA_CONSOLE":{"run":"<command>"}} is executed in Rails.root and its
+# output returned as { statusCode: <exit>, body: <stdout+stderr> }. So the task
+# uses the function's own IAM role and env (POSTS_TABLE etc.); the OIDC role here
+# only needs lambda:InvokeFunction, and no data ever touches a developer laptop.
+#
+# Default command is the feed_pk backfill (needed once after the by-recency GSI
+# ships — see lib/tasks/dynamodb.rake), but any command can be run.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which deployment to run against
+        type: choice
+        options: [staging, production]
+        default: staging
+        required: true
+      command:
+        description: Command to run in the app (from Rails.root)
+        type: string
+        default: bin/rails dynamodb:backfill_feed_pk
+        required: true
+
+permissions:
+  id-token: write   # assume the AWS role via OIDC
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    # Use the same GitHub environment as deploys, so production keeps its
+    # protection rules (required reviewers etc.) for anything run against it.
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          aws-region: us-east-1
+
+      - name: Invoke "${{ inputs.command }}" on TheBookface-${{ inputs.environment }}
+        env:
+          STACK: TheBookface-${{ inputs.environment }}
+          COMMAND: ${{ inputs.command }}
+        run: |
+          set -euo pipefail
+
+          FN=$(aws cloudformation describe-stacks --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='FunctionName'].OutputValue" --output text)
+          if [ -z "$FN" ] || [ "$FN" = "None" ]; then
+            echo "::error::$STACK has no FunctionName output — deploy it first."
+            exit 1
+          fi
+          echo "Function: $FN"
+          echo "Command : $COMMAND"
+
+          # jq builds the runner event so the command is safely JSON-encoded.
+          PAYLOAD=$(jq -nc --arg cmd "$COMMAND" '{"X_LAMBDA_CONSOLE":{"run":$cmd}}')
+
+          # response.json = the function's return payload; invoke.json = the
+          # invocation metadata (StatusCode / FunctionError / ExecutedVersion).
+          aws lambda invoke \
+            --function-name "$FN" \
+            --cli-binary-format raw-in-base64-out \
+            --payload "$PAYLOAD" \
+            --output json response.json > invoke.json
+
+          echo "----------------- task output -----------------"
+          jq -r 'if type=="object" then (.body // tostring) else tostring end' response.json
+          echo "-----------------------------------------------"
+
+          # A runtime-level failure (unhandled crash, timeout) surfaces here...
+          FERR=$(jq -r '.FunctionError // empty' invoke.json)
+          if [ -n "$FERR" ]; then
+            echo "::error::Lambda FunctionError: $FERR"
+            exit 1
+          fi
+          # ...and a non-zero task exit comes back as the runner's statusCode.
+          CODE=$(jq -r 'if type=="object" and has("statusCode") then .statusCode else 1 end' response.json)
+          if [ "$CODE" != "0" ]; then
+            echo "::error::task exited $CODE"
+            exit 1
+          fi
+          echo "✓ task completed (exit 0)"
