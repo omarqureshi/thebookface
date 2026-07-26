@@ -18,7 +18,6 @@ class CommentsController < ApplicationController
     if @comment.save
       redirect_to post_path(@post, anchor: "c-#{@comment.path.tr('/', '-')}")
     else
-      @comments = Comment.thread_for(@post.id)
       render "posts/show", status: :unprocessable_entity
     end
   rescue Dynamoid::Errors::RecordNotFound

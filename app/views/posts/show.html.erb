@@ -26,7 +26,7 @@
   </article>
 
   <section class="card thread" id="comments">
-    <h2 class="thread__title"><%= pluralize(@comments.size, "comment") %></h2>
-    <%= render "comments/thread", post: @post, comments: @comments, my_reactions: @my_reactions %>
+    <h2 class="thread__title"><%= pluralize(@post.comments.size, "comment") %></h2>
+    <%= render "comments/thread", post: @post, comments: @post.comments, my_reactions: @my_reactions %>
   </section>
 </div>

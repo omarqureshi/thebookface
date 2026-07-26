@@ -63,8 +63,19 @@ class Post
     User.new("sub" => author_sub, "name" => author_name)
   end
 
+  # The whole thread for this post, in render order (pre-order by the `path`
+  # range key) — one Query on the comments partition. Memoized so the show view
+  # can read it more than once (size + the thread partial) without re-querying.
+  # Not a Dynamoid has_many: that stores a set of child ids on the post and
+  # loads them by hash key, which neither fits Comment's (post_id, path) key nor
+  # preserves the path ordering the tree render needs.
+  def comments
+    @comments ||= Comment.thread_for(id)
+  end
+
   # How many comments/replies this post has — a Query on the comments table by
-  # post_id (its hash key). Shown next to the feed's "comments" link.
+  # post_id (its hash key). Shown next to the feed's "comments" link. (Its own
+  # count Query, so the feed never loads whole threads just to size them.)
   def comment_count
     Comment.where(post_id: id).count
   end

@@ -11,7 +11,6 @@ class PostsController < ApplicationController
 
   def show
     @post = Post.find(params[:id])
-    @comments = Comment.thread_for(@post.id) # pre-ordered thread, one Query
     @comment = Comment.new
     # The current user's own reactions across the whole thread ({ target =>
     # emoji }, one Query) for highlighting; {} when signed out. Counts come from
