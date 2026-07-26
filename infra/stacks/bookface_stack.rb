@@ -209,8 +209,10 @@ class BookfaceStack < AWSCDK::Stack
         environment: {
           "RAILS_ENV" => "production",
           "BOOKFACE_ENV" => @env_name,
-          # Rails serves /assets itself here; in front of real traffic you'd put
-          # CloudFront ahead of this function so assets never cost an invocation.
+          # Rails serves /assets (and other public files) from the image. The app
+          # is fronted by CloudFront with a cached, Brotli-compressed /assets/*
+          # behavior (1-year TTL, digest-fingerprinted), so a given asset costs a
+          # Lambda invocation at most once per edge per deploy.
           "RAILS_SERVE_STATIC_FILES" => "1",
           "POSTS_TABLE" => posts.table_name,
           "COMMENTS_TABLE" => comments.table_name,
@@ -220,8 +222,10 @@ class BookfaceStack < AWSCDK::Stack
           # OIDC issuer for the user pool — the app discovers endpoints from here.
           "COGNITO_ISSUER" => "https://cognito-idp.#{region}.amazonaws.com/#{user_pool.user_pool_id}",
           "COGNITO_DOMAIN" => domain.base_url,
-          # Demo only. For anything real, keep this in Secrets Manager/SSM.
-          "SECRET_KEY_BASE" => ENV.fetch("SECRET_KEY_BASE", "demo" * 16)
+          # Supplied at deploy time as an env-scoped GitHub secret — no insecure
+          # fallback, so a deploy without it fails fast. (Secrets Manager/SSM for
+          # a production-grade setup.)
+          "SECRET_KEY_BASE" => ENV.fetch("SECRET_KEY_BASE")
         }
       }
     )
