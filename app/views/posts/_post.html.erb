@@ -11,11 +11,18 @@
   <% if post.body.present? %><div class="post__body"><%= simple_format(post.body) %></div><% end %>
   <%= render "media", post: post %>
 
-  <%= render "reactions/bar", post: post, subject: post, readonly: true %>
+  <%# React straight from the feed (mine highlight is only computed on the post
+      page to keep the feed a single query). %>
+  <%= render "reactions/bar", post: post, subject: post, mine: nil %>
 
   <footer class="post__foot">
-    <%= link_to post_path(post), class: "post__comments-link" do %>
-      Comments &amp; replies →
+    <%# A Turbo Frame that starts as the "N comments" link; clicking it pulls the
+        matching frame out of the post page, loading the thread inline. Posting
+        from within updates this same frame (create redirects back to the post). %>
+    <%= turbo_frame_tag "post_#{post.id}_comments" do %>
+      <%= link_to post_path(post), class: "post__comments-link" do %>
+        <%= pluralize(post.comment_count, "comment") %> &amp; replies
+      <% end %>
     <% end %>
   </footer>
 </article>

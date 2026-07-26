@@ -18,21 +18,6 @@
 
   <section class="card thread" id="comments">
     <h2 class="thread__title"><%= pluralize(@comments.size, "comment") %></h2>
-
-    <% if signed_in? %>
-      <%= render "comments/form", post: @post, parent_path: nil, label: "Comment on this post…" %>
-    <% else %>
-      <p class="muted">Sign in with Google to join the conversation.</p>
-    <% end %>
-
-    <div class="thread__list">
-      <% if @comments.empty? %>
-        <p class="muted">No comments yet — start the thread.</p>
-      <% else %>
-        <% @comments.each do |comment| %>
-          <%= render "comments/comment", comment: comment, post: @post, my_reactions: @my_reactions %>
-        <% end %>
-      <% end %>
-    </div>
+    <%= render "comments/thread", post: @post, comments: @comments, my_reactions: @my_reactions %>
   </section>
 </div>

@@ -231,14 +231,21 @@ a:hover { text-decoration: underline; }
 .comment__meta { display: flex; align-items: center; gap: .8rem; margin: .2rem 0 0 .8rem; }
 .comment__time { color: var(--muted); font-size: .78rem; }
 
-.reply { font-size: .8rem; }
+/* The reply toggle sits under the time; the form drops in below it. */
+.reply { font-size: .8rem; margin: .2rem 0 0 .8rem; }
 .reply__toggle {
   cursor: pointer; color: var(--muted); font-weight: 700; list-style: none;
+  display: inline-block;
 }
 .reply__toggle::-webkit-details-marker { display: none; }
 .reply[open] .reply__toggle { color: var(--fb-blue); }
 .comment-form { margin-top: .5rem; display: flex; gap: .4rem; align-items: flex-start; }
 .comment-form__actions { display: flex; }
+
+/* Turbo Frames (inline comment loading on the feed) render as blocks; give the
+   thread a little breathing room when it loads into the post footer. */
+turbo-frame { display: block; }
+.post__foot turbo-frame .thread__list { margin-top: .6rem; }
 
 /* ---- media / uploads ---- */
 .is-hidden { display: none !important; }

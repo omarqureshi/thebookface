@@ -46,6 +46,12 @@ class Post
     User.new("sub" => author_sub, "name" => author_name)
   end
 
+  # How many comments/replies this post has — a Query on the comments table by
+  # post_id (its hash key). Shown next to the feed's "comments" link.
+  def comment_count
+    Comment.where(post_id: id).count
+  end
+
   # Attached images with string keys, for the view.
   def media_items
     Array(media).map { |m| m.respond_to?(:transform_keys) ? m.transform_keys(&:to_s) : m }

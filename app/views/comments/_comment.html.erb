@@ -11,16 +11,17 @@
     </div>
     <div class="comment__meta">
       <span class="comment__time"><%= time_ago_in_words(comment.created_at) %> ago</span>
-      <% if signed_in? %>
-        <details class="reply">
-          <summary class="reply__toggle">Reply</summary>
-          <%= render "comments/form",
-                post: post,
-                parent_path: comment.path,
-                label: "Reply to #{comment.author.name}…" %>
-        </details>
-      <% end %>
     </div>
+    <% if signed_in? %>
+      <%# Reply toggle sits under the time; opening it drops the form in below it. %>
+      <details class="reply">
+        <summary class="reply__toggle">Reply</summary>
+        <%= render "comments/form",
+              post: post,
+              parent_path: comment.path,
+              label: "Reply to #{comment.author.name}…" %>
+      </details>
+    <% end %>
     <%= render "reactions/bar", post: post, subject: comment,
           mine: local_assigns[:my_reactions]&.dig(comment.reaction_target) %>
   </div>
