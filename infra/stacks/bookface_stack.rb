@@ -340,16 +340,31 @@ class BookfaceStack < AWSCDK::Stack
         [{ function: redirect, event_type: AWSCDK::CloudFront::FunctionEventType::VIEWER_REQUEST }]
       end
 
+    # An OAC-signed Lambda origin rejects any request whose `Authorization` header
+    # was forwarded: CloudFront uses that header to carry its own SigV4 signature,
+    # so if a policy forwards it, CloudFront skips signing and the AWS_IAM Function
+    # URL 403s. The managed AllViewerExceptHostHeader policy DOES forward
+    # Authorization — hence a custom one: forward all cookies + query strings (the
+    # app needs them) but drop both `host` (OAC signs against the origin host) and
+    # `authorization` (so CloudFront can inject the signature).
+    app_origin_request_policy = AWSCDK::CloudFront::OriginRequestPolicy.new(
+      self,
+      "AppOriginRequestPolicy",
+      {
+        cookie_behavior: AWSCDK::CloudFront::OriginRequestCookieBehavior.all,
+        query_string_behavior: AWSCDK::CloudFront::OriginRequestQueryStringBehavior.all,
+        header_behavior: AWSCDK::CloudFront::OriginRequestHeaderBehavior.deny_list("host", "authorization")
+      }
+    )
+
     default_behavior = {
       origin: origin,
       viewer_protocol_policy: AWSCDK::CloudFront::ViewerProtocolPolicy::REDIRECT_TO_HTTPS,
-      # A dynamic Rails app: forward everything, cache nothing by default. The
-      # Host header is deliberately excluded — the OAC-signed origin request is
-      # signed against the Function URL's own host, so forwarding the viewer host
-      # would break the SigV4 signature.
+      # A dynamic Rails app: cache nothing by default; forward what it needs via
+      # the custom policy above (host/authorization dropped for OAC signing).
       allowed_methods: AWSCDK::CloudFront::AllowedMethods.ALLOW_ALL,
       cache_policy: AWSCDK::CloudFront::CachePolicy.CACHING_DISABLED,
-      origin_request_policy: AWSCDK::CloudFront::OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER
+      origin_request_policy: app_origin_request_policy
     }
     # Digest-stamped assets are immutable, so cache them at the edge and they
     # never cost a Lambda invocation.
