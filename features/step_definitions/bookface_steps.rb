@@ -18,6 +18,7 @@ end
 # --- auth (stubbed sign-in via the dev personas) ---------------------------
 
 Given("I am signed in as {string}") do |name|
+  @me = name # remembered so ownership seeds can match current_user.sub
   visit root_path
   first(:button, name).click # the dev persona button (POST /auth/dev)
 end
