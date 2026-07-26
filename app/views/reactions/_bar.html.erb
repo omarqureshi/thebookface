@@ -5,7 +5,7 @@
 <% counts = subject.reaction_counts %>
 <% mine = local_assigns[:mine] %>
 <% readonly = local_assigns.fetch(:readonly, false) %>
-<div class="reactions">
+<div class="reactions" id="<%= reactions_dom_id(post, subject) %>">
   <% if counts.any? %>
     <div class="reactions__counts">
       <% counts.sort_by { |_emoji, n| -n }.each do |emoji, n| %>
@@ -17,12 +17,13 @@
   <% if !readonly && signed_in? %>
     <div class="reactions__palette">
       <% Reaction::PALETTE.each do |emoji| %>
+        <%# No data-turbo=false: the toggle responds with a Turbo Stream that
+            swaps just this bar, so reacting doesn't reload the page. %>
         <%= button_to post_reactions_path(post),
               params: { target: subject.reaction_target, emoji: emoji },
               method: :post,
               class: "reactions__btn#{' reactions__btn--mine' if mine == emoji}",
-              title: (mine == emoji ? "Remove #{emoji}" : "React #{emoji}"),
-              data: { turbo: false } do %><%= emoji %><% end %>
+              title: (mine == emoji ? "Remove #{emoji}" : "React #{emoji}") do %><%= emoji %><% end %>
       <% end %>
     </div>
   <% end %>

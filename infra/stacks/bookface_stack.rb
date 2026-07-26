@@ -206,6 +206,9 @@ class BookfaceStack < AWSCDK::Stack
         ),
         memory_size: @config[:memory_size],
         timeout: AWSCDK::Duration.seconds(60),
+        # X-Ray active tracing: per-invocation traces (cold start, duration,
+        # faults) + the service map. CDK adds the xray:Put* perms to the role.
+        tracing: AWSCDK::Lambda::Tracing::ACTIVE,
         environment: {
           "RAILS_ENV" => "production",
           "BOOKFACE_ENV" => @env_name,

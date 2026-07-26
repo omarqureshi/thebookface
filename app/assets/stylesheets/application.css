@@ -239,7 +239,10 @@ a:hover { text-decoration: underline; }
 }
 .reply__toggle::-webkit-details-marker { display: none; }
 .reply[open] .reply__toggle { color: var(--fb-blue); }
-.comment-form { margin-top: .5rem; display: flex; gap: .4rem; align-items: flex-start; }
+.comment-form { margin-top: .8rem; display: flex; gap: .4rem; align-items: flex-start; }
+/* The new-comment box sits under the thread — give it clear separation from the
+   last comment (replies get the .8rem above from the rule above). */
+.thread__list + .comment-form { margin-top: 1.15rem; }
 .comment-form__actions { display: flex; }
 
 /* Turbo Frames (inline comment loading on the feed) render as blocks; give the

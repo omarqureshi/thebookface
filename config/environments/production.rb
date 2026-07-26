@@ -34,8 +34,13 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
   config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
 
-  # Change to "debug" to log everything (including potentially personally-identifiable information!).
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  # Fatal only. The aws-sdk / Dynamoid request chatter and Rails' own request logs
+  # all flow through this (tagged) logger, so a fatal level silences them — and
+  # X-Ray active tracing still captures errors/faults. Set the level on the logger
+  # explicitly too, because a custom-assigned logger doesn't reliably pick up
+  # config.log_level. Override with RAILS_LOG_LEVEL when you need to debug.
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "fatal")
+  config.logger.level = config.log_level
 
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"

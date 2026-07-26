@@ -23,4 +23,10 @@ module ApplicationHelper
   def media_url(key)
     MediaStorage.public_url(key)
   end
+
+  # Stable DOM id for a subject's reactions bar, so a reaction toggle can swap
+  # just that bar via Turbo Stream (the post, or a specific comment).
+  def reactions_dom_id(post, subject)
+    "reactions-#{post.id}-#{subject.reaction_target.gsub(/[^0-9a-z]+/i, '-')}"
+  end
 end
