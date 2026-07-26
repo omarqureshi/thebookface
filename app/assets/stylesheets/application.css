@@ -204,6 +204,7 @@ a:hover { text-decoration: underline; }
   border-radius: 18px; padding: .6rem .9rem; font: inherit; color: var(--ink);
 }
 .composer__input:focus, .comment-form__input:focus { outline: 2px solid #cfe0ff; }
+.comment-form__input { padding-top: .95rem; }
 .composer__actions { display: flex; justify-content: flex-end; margin-top: .6rem; }
 
 /* ---- posts ---- */
