@@ -8,9 +8,7 @@ class CommentsController < ApplicationController
     @post = Post.find(params[:post_id])
     @comment = Comment.new(
       comment_params.to_h.symbolize_keys.merge(
-        post_id: @post.id,
-        author_sub: current_user.sub,
-        author_name: current_user.name
+        { post_id: @post.id }, author_attributes
       )
     )
     if @comment.save

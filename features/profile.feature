@@ -27,3 +27,13 @@ Feature: Editing your profile
   Scenario: An avatar key I do not own is ignored
     When I try to set my avatar to someone else's key
     Then my profile has no photo
+
+  Scenario: Renaming reconciles the author name on my existing posts
+    When I write a post "Reconcile me"
+    And I submit the post
+    And I set my display name to "Ada L." and bio ""
+    And I open the feed
+    # The post's author snapshot was "Ada Lovelace" at write time; the reconcile
+    # (run on the profile save) has rewritten it, so the old name is gone.
+    Then I should see "Ada L."
+    And I should not see "Ada Lovelace"

@@ -27,7 +27,7 @@ class PostsController < ApplicationController
   def create
     @post = Post.new(
       post_params.to_h.symbolize_keys.merge(
-        author_sub: current_user.sub, author_name: current_user.name,
+        author_attributes,
         media: AttachedMedia.from_params(params.dig(:post, :media_json), owner_sub: current_user.sub)
       )
     )

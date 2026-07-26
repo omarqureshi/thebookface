@@ -19,6 +19,20 @@ RSpec.describe Profile do
     expect(Profile.new(sub: "dev|ada", bio: "x" * 301)).not_to be_valid
   end
 
+  describe "#shown_name" do
+    it "prefers the chosen display name" do
+      expect(Profile.new(display_name: "Ada L.", name: "Ada Lovelace").shown_name).to eq("Ada L.")
+    end
+
+    it "falls back to the Cognito name when there's no display name" do
+      expect(Profile.new(name: "Ada Lovelace").shown_name).to eq("Ada Lovelace")
+    end
+
+    it "is nil when both are blank" do
+      expect(Profile.new.shown_name).to be_nil
+    end
+  end
+
   describe "#avatar_url" do
     it "is nil without an avatar_key" do
       expect(Profile.new(sub: "dev|ada").avatar_url).to be_nil

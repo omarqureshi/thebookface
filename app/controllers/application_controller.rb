@@ -32,6 +32,17 @@ class ApplicationController < ActionController::Base
     @current_profile ||= Profile.for(current_user.sub) if current_user
   end
 
+  # The author snapshot stamped onto a new post/comment: who wrote it plus their
+  # current display name + avatar, denormalized for cheap feed reads and kept in
+  # step afterwards by the profile reconcile job.
+  def author_attributes
+    {
+      author_sub: current_user.sub,
+      author_name: current_profile.display_name.presence || current_user.name,
+      author_avatar: current_profile.avatar_key
+    }
+  end
+
   def signed_in?
     current_user.present?
   end

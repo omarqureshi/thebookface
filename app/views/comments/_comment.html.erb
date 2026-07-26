@@ -11,7 +11,7 @@
       <div class="comment__bubble comment__bubble--deleted"><span class="muted">[comment deleted]</span></div>
     </div>
   <% else %>
-    <span class="avatar avatar--sm"><%= comment.author.initials %></span>
+    <%= author_avatar_tag(comment, "avatar--sm") %>
     <div class="comment__body">
       <div class="comment__bubble">
         <span class="comment__author"><%= comment.author.name %></span>

@@ -19,7 +19,9 @@ class ProfilesController < ApplicationController
     @profile.display_name = profile_params[:display_name]
     @profile.bio = profile_params[:bio]
     @profile.avatar_key = accepted_avatar_key
+    @profile.name = current_user.name # snapshot for the reconcile fallback
     if @profile.save
+      ProfileReconciliation.enqueue(current_user.sub) # denormalized author fields, async
       redirect_to profile_path, notice: "Profile saved."
     else
       render :edit, status: :unprocessable_entity

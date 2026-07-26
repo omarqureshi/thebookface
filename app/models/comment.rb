@@ -24,7 +24,8 @@ class Comment
   # Set on a reply before save; blank means "reply to the post itself".
   field :parent_path
   field :author_sub
-  field :author_name
+  field :author_name   # denormalized snapshot of the author's display name
+  field :author_avatar # denormalized snapshot of the author's avatar key (or nil)
   field :body
 
   # Denormalized reaction cache (see Post#reactions / Reaction.toggle).
@@ -33,6 +34,10 @@ class Comment
   # Soft-delete flag — a deleted comment that still has replies keeps its node
   # (so the subtree stays threaded) but renders as "[deleted]".
   field :deleted, :boolean, default: false
+
+  # Find a user's comments (for the profile reconcile job) without a Scan.
+  global_secondary_index name: "comments_by_author", hash_key: :author_sub,
+                         range_key: :created_at, projected_attributes: :keys_only
 
   validates :body, presence: true, length: { maximum: 5_000 }, unless: :deleted?
   validates :author_sub, presence: true

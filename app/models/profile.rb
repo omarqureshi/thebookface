@@ -13,9 +13,19 @@ class Profile
   field :display_name
   field :bio
   field :avatar_key
+  # Snapshot of the Cognito/Google name, stamped on save so the async reconcile
+  # job (which has no session) has a name to fall back to when display_name is
+  # blank.
+  field :name
 
   validates :display_name, length: { maximum: 60 }
   validates :bio, length: { maximum: 300 }
+
+  # The name to show for this user: their chosen display name, else the Cognito
+  # name. Used for the denormalized author snapshot on posts/comments.
+  def shown_name
+    display_name.presence || name.presence
+  end
 
   # This user's profile, or a fresh blank one to fill in — never raises for a
   # first-time user who hasn't saved anything yet.

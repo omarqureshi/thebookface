@@ -5,7 +5,7 @@
 
   <article class="card post">
     <header class="post__head">
-      <span class="avatar"><%= @post.author.initials %></span>
+      <%= author_avatar_tag(@post) %>
       <div>
         <div class="post__author"><%= @post.author.name %></div>
         <div class="post__time"><%= time_ago_in_words(@post.created_at) %> ago</div>

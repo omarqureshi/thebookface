@@ -10,7 +10,8 @@ class Post
   table name: Rails.application.config.x.dynamodb.posts_table.to_sym, key: :id
 
   field :author_sub
-  field :author_name
+  field :author_name   # denormalized snapshot of the author's display name
+  field :author_avatar # denormalized snapshot of the author's avatar key (or nil)
   field :body
 
   # Denormalized reaction cache: { "👍" => 12, "❤️" => 3, … }. Kept in step with
@@ -34,6 +35,11 @@ class Post
   # CDK-generated) table name — the CDK creates the GSI under the same name.
   global_secondary_index name: "posts_by_recency", hash_key: :feed_pk,
                          range_key: :created_at, projected_attributes: :all
+
+  # Find a user's posts (for the profile reconcile job) without a Scan. Keys only
+  # — the reconcile just needs each post's id to rewrite its author snapshot.
+  global_secondary_index name: "posts_by_author", hash_key: :author_sub,
+                         range_key: :created_at, projected_attributes: :keys_only
 
   # A post needs an author and *something* to show — text or a photo (or both).
   # Body isn't required on its own: an image-only post is fine.

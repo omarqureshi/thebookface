@@ -35,6 +35,18 @@ module ApplicationHelper
     end
   end
 
+  # Avatar for a post/comment author, from the denormalized snapshot on the
+  # record — the photo if there's an avatar key, else initials from the name.
+  def author_avatar_tag(record, extra = nil)
+    classes = ["avatar", extra].compact.join(" ")
+    if record.author_avatar.present?
+      tag.span("", class: "#{classes} avatar--photo",
+               style: "background-image: url(#{media_url(record.author_avatar)})")
+    else
+      tag.span(record.author.initials, class: classes)
+    end
+  end
+
   # Stable DOM id for a subject's reactions bar, so a reaction toggle can swap
   # just that bar via Turbo Stream (the post, or a specific comment).
   def reactions_dom_id(post, subject)
