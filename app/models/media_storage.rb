@@ -65,7 +65,36 @@ module MediaStorage
     key.to_s.start_with?("#{prefix_for(user_sub)}/")
   end
 
+  # Reap objects from S3 in one DeleteObjects call per 1000 keys (the S3 analog
+  # of BatchWriteItem — not one DeleteObject per key). Best-effort: the caller
+  # has already removed the DynamoDB record, so an S3 error must not raise and
+  # leave a half-deleted post — orphaned bytes are a recoverable cost, so log and
+  # move on.
+  def delete_objects(keys)
+    keys = Array(keys).map(&:to_s).reject(&:empty?).uniq
+    return if keys.empty?
+
+    keys.each_slice(1000) do |batch|
+      client.delete_objects(
+        bucket: bucket,
+        delete: { objects: batch.map { |k| { key: k } }, quiet: true }
+      )
+    end
+  rescue Aws::S3::Errors::ServiceError, Seahorse::Client::NetworkingError => e
+    Rails.logger.error("MediaStorage#delete_objects left #{keys.size} object(s): #{e.class}: #{e.message}")
+  end
+
   # --- internals ---
+
+  # An S3 client for server-side operations (presigning needs none). Path-style
+  # against MinIO in dev/test; the Lambda role's creds + virtual-host S3 in prod.
+  def client
+    opts = { region: region }
+    if endpoint
+      opts.merge!(endpoint: endpoint, force_path_style: true, credentials: credentials)
+    end
+    Aws::S3::Client.new(**opts)
+  end
 
   def upload_url
     if endpoint

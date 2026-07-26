@@ -236,8 +236,10 @@ class BookfaceStack < AWSCDK::Stack
     posts.grant_read_write_data(rails)
     comments.grant_read_write_data(rails)
     reactions.grant_read_write_data(rails)
-    # The function only needs to *presign* uploads — s3:PutObject on the bucket.
+    # Uploads are presigned (s3:PutObject); deleting a post also reaps its images
+    # server-side (s3:DeleteObject). No read grant — CloudFront serves the bucket.
     media.grant_put(rails)
+    media.grant_delete(rails)
 
     # Dynamoid checks table existence via dynamodb:ListTables on first write. It's
     # an account-level action with no resource-level scoping, so the per-table

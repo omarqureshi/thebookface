@@ -53,17 +53,25 @@ class Post
   end
 
   # Delete the post and everything under it — every comment in the thread and
-  # every reaction (all colocated by post_id), so nothing is left dangling.
-  # `delete_all` queries the keys and removes them via BatchWriteItem (chunked to
-  # 25), not one DeleteItem per row.
+  # every reaction (all colocated by post_id) via BatchWriteItem, then reap the
+  # attached images from S3 — so nothing is left dangling in either store.
+  # DynamoDB goes first, S3 last: a failure can only ever leave orphaned bytes
+  # (invisible, recoverable), never a post pointing at images that are gone.
   def destroy_with_thread!
+    keys = media_keys # capture before the record goes away
     Comment.where(post_id: id).delete_all
     Reaction.where(post_id: id).delete_all
     delete
+    MediaStorage.delete_objects(keys)
   end
 
   # Attached images with string keys, for the view.
   def media_items
     Array(media).map { |m| m.respond_to?(:transform_keys) ? m.transform_keys(&:to_s) : m }
+  end
+
+  # The S3 object keys of the attached images.
+  def media_keys
+    media_items.filter_map { |m| m["key"] }
   end
 end
