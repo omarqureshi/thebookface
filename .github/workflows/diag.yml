@@ -1,0 +1,42 @@
+name: Diag Staging Origin
+
+# Read-only: inspects why the staging Function URL rejects CloudFront's OAC-signed
+# request (403 AccessDeniedException). Delete once the origin serves.
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          aws-region: us-east-1
+
+      - name: Inspect Function URL auth + resource policy + OAC
+        run: |
+          set -uo pipefail
+          FN=$(aws cloudformation describe-stack-resource \
+            --stack-name TheBookface-staging --logical-resource-id Rails \
+            --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          echo "### function: $FN"
+          echo "### function-url-config:"
+          aws lambda get-function-url-config --function-name "$FN" \
+            --query '{AuthType:AuthType,InvokeMode:InvokeMode}' --output json
+          echo "### resource policy (the CloudFront-invoke permission):"
+          aws lambda get-policy --function-name "$FN" --query Policy --output text 2>/dev/null \
+            | jq '.Statement' || echo "!! NO resource-based policy on the function"
+          DIST=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Aliases.Items[?@=='staging.thebookface.net']].Id | [0]" --output text)
+          echo "### app distribution id: $DIST"
+          echo "### expected SourceArn: arn:aws:cloudfront::${{ vars.AWS_ACCOUNT_ID }}:distribution/$DIST"
+          echo "### origins + OAC ids:"
+          aws cloudfront get-distribution-config --id "$DIST" \
+            --query 'DistributionConfig.Origins.Items[].{Id:Id,Domain:DomainName,OAC:OriginAccessControlId}' --output json
