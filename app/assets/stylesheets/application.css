@@ -37,6 +37,8 @@ a:hover { text-decoration: underline; }
 }
 .topbar__spacer { flex: 1; }
 .topbar__name { color: var(--ink); font-weight: 600; font-size: .9rem; }
+.topbar__me { display: flex; align-items: center; gap: .5rem; }
+.topbar__me:hover .topbar__name { color: var(--fb-blue); }
 .brand { display: flex; align-items: center; gap: .5rem; color: var(--fb-blue); font-weight: 800; }
 .brand:hover { text-decoration: none; }
 .brand__mark {
@@ -55,6 +57,14 @@ a:hover { text-decoration: underline; }
   font-weight: 700; font-size: .85rem; letter-spacing: .02em;
 }
 .avatar--sm { width: 30px; height: 30px; font-size: .72rem; }
+.avatar--lg { width: 64px; height: 64px; font-size: 1.4rem; }
+
+/* Profile page + edit form. */
+.profile__head { display: flex; align-items: center; gap: 1rem; margin-bottom: .8rem; }
+.profile__name { font-size: 1.4rem; margin: 0; }
+.profile__bio { margin: .4rem 0 1rem; }
+.field { display: block; margin-bottom: .9rem; }
+.field__label { display: block; font-weight: 600; font-size: .82rem; color: var(--muted); margin-bottom: .3rem; }
 
 /* ---- layout ---- */
 .page { max-width: 680px; margin: 1.25rem auto; padding: 0 1rem; }

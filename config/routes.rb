@@ -6,6 +6,10 @@ Rails.application.routes.draw do
     post "reactions", to: "reactions#toggle" # body: target, emoji
   end
 
+  # The signed-in user's own profile (display name, bio, avatar). Singular — it's
+  # always current_user's, keyed by their Cognito sub, so there's no :id.
+  resource :profile, only: %i[show edit update]
+
   # Presigned S3 upload targets for the browser (images).
   post "/uploads", to: "uploads#create"
 

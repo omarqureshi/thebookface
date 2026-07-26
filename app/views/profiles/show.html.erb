@@ -1,0 +1,21 @@
+<% content_for :title, "Your profile" %>
+
+<div class="feed">
+  <%= link_to "← Back to the feed", root_path, class: "backlink" %>
+
+  <div class="card">
+    <header class="profile__head">
+      <span class="avatar avatar--lg"><%= current_user.initials %></span>
+      <div>
+        <h1 class="profile__name"><%= @profile.display_name.presence || current_user.name %></h1>
+        <div class="muted"><%= current_user.email %></div>
+      </div>
+    </header>
+
+    <% if @profile.bio.present? %>
+      <div class="profile__bio"><%= simple_format(@profile.bio) %></div>
+    <% end %>
+
+    <%= link_to "Edit profile", edit_profile_path, class: "btn btn--primary" %>
+  </div>
+</div>

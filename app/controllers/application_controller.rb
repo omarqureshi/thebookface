@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
-  helper_method :current_user, :signed_in?
+  helper_method :current_user, :signed_in?, :current_profile
 
   # Authorization failures (CanCanCan) → a friendly bounce, not a 500. CanCanCan's
   # current_ability uses current_user (below) to build Ability.new(current_user).
@@ -23,6 +23,13 @@ class ApplicationController < ActionController::Base
 
   def current_user
     @current_user ||= (User.new(session[:user]) if session[:user].present?)
+  end
+
+  # The signed-in user's profile (display name / bio / avatar) — a fresh blank
+  # one until they save. Cognito claims (current_user) are identity; this is the
+  # editable layer on top.
+  def current_profile
+    @current_profile ||= Profile.for(current_user.sub) if current_user
   end
 
   def signed_in?
