@@ -322,8 +322,17 @@ class BookfaceStack < AWSCDK::Stack
     cert_props[:subject_alternative_names] = [www] if www
     cert = AWSCDK::CertificateManager::Certificate.new(self, "AppCert", cert_props)
 
-    # Function URL origin, reused across behaviours so CloudFront dedupes it.
-    origin = AWSCDK::CloudFrontOrigins::FunctionURLOrigin.new(url)
+    # Function URL origin, reused across behaviours so CloudFront dedupes it. The
+    # public Function URL requires its OWN host in the Host header, so CloudFront
+    # can't forward the viewer host — which would otherwise leave Rails thinking its
+    # host is the Lambda URL and building OAuth callbacks/redirects on it (breaking
+    # sign-in with csrf_detected). Each stack serves exactly one domain, so tell the
+    # app its real public host out-of-band via a static X-Forwarded-Host header;
+    # Rails reads X-Forwarded-Host to compute request.host.
+    origin = AWSCDK::CloudFrontOrigins::FunctionURLOrigin.new(
+      url,
+      { custom_headers: { "X-Forwarded-Host" => @domain } }
+    )
 
     # www -> apex, as a viewer-request CloudFront Function: the 301 is returned
     # before the origin is ever hit, so a www request never costs a Lambda
@@ -343,20 +352,18 @@ class BookfaceStack < AWSCDK::Stack
         [{ function: redirect, event_type: AWSCDK::CloudFront::FunctionEventType::VIEWER_REQUEST }]
       end
 
-    # An OAC-signed Lambda origin rejects any request whose `Authorization` header
-    # was forwarded: CloudFront uses that header to carry its own SigV4 signature,
-    # so if a policy forwards it, CloudFront skips signing and the AWS_IAM Function
-    # URL 403s. The managed AllViewerExceptHostHeader policy DOES forward
-    # Authorization — hence a custom one: forward all cookies + query strings (the
-    # app needs them) but drop both `host` (OAC signs against the origin host) and
-    # `authorization` (so CloudFront can inject the signature).
+    # Forward everything the app needs (all cookies + query strings) but drop three
+    # headers: `host` (the public Function URL requires its own host in Host, so the
+    # viewer host can't be forwarded), `x-forwarded-host` (so a viewer can't spoof
+    # the real host that the origin's custom header injects), and `authorization`
+    # (this cookie-auth app never uses it).
     app_origin_request_policy = AWSCDK::CloudFront::OriginRequestPolicy.new(
       self,
       "AppOriginRequestPolicy",
       {
         cookie_behavior: AWSCDK::CloudFront::OriginRequestCookieBehavior.all,
         query_string_behavior: AWSCDK::CloudFront::OriginRequestQueryStringBehavior.all,
-        header_behavior: AWSCDK::CloudFront::OriginRequestHeaderBehavior.deny_list("host", "authorization")
+        header_behavior: AWSCDK::CloudFront::OriginRequestHeaderBehavior.deny_list("host", "x-forwarded-host", "authorization")
       }
     )
 
