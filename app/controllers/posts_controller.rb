@@ -28,7 +28,8 @@ class PostsController < ApplicationController
   def create
     @post = Post.new(
       post_params.to_h.symbolize_keys.merge(
-        author_sub: current_user.sub, author_name: current_user.name, media: accepted_media
+        author_sub: current_user.sub, author_name: current_user.name,
+        media: AttachedMedia.from_params(params.dig(:post, :media_json), owner_sub: current_user.sub)
       )
     )
     if @post.save
@@ -68,28 +69,5 @@ class PostsController < ApplicationController
 
   def post_params
     params.require(:post).permit(:body)
-  end
-
-  # The composer's uploader dropped S3 keys into a hidden JSON field. Trust only
-  # keys under the current user's own upload prefix (that's all presigning let
-  # them write), and keep just the fields we render.
-  def accepted_media
-    raw = params.dig(:post, :media_json)
-    return [] if raw.blank?
-
-    JSON.parse(raw).filter_map do |m|
-      key = m["key"].to_s
-      next unless MediaStorage.owned_by?(key, current_user.sub)
-
-      {
-        "key" => key,
-        "type" => "image",
-        "content_type" => m["content_type"].to_s,
-        "width" => m["width"].to_i,
-        "height" => m["height"].to_i
-      }
-    end.first(4)
-  rescue JSON::ParserError, TypeError
-    []
   end
 end
