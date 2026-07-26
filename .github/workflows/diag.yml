@@ -29,7 +29,12 @@ jobs:
           NIDS=$(echo "$IDS" | tr '\t' '\n' | grep -E '^[0-9a-f-]{20,}$' | head -8 | tr '\n' ' ')
           if [ -z "$NIDS" ]; then echo "!! no trace ids (propagation lag, or no xray:Get perms)"; exit 0; fi
           echo "### traces: $NIDS"
-          DOCS=$(aws xray batch-get-traces --trace-ids $NIDS --query 'Traces[].Segments[].Document' --output text 2>&1)
-          echo "### distinct subsegment names + aws operations seen:"
-          echo "$DOCS" | grep -oiE '"name"[: ]*"[^"]*"|"operation"[: ]*"[^"]*"|"table_name"[: ]*"[^"]*"' | sort | uniq -c | sort -rn | head -30
-          echo "### DynamoDB present?"; echo "$DOCS" | grep -qiE 'dynamodb|"name": ?"DynamoDB"' && echo "YES — DynamoDB subsegments found" || echo "NO"
+          aws xray batch-get-traces --trace-ids $NIDS --output json > traces.json 2>batch.err
+          echo "batch-get-traces exit=$?  bytes=$(wc -c < traces.json)"
+          echo "--- stderr (if any) ---"; head -3 batch.err
+          echo "### segment/subsegment names (recursive, with counts):"
+          jq -r '.Traces[].Segments[].Document | fromjson | .. | objects | .name? // empty' traces.json 2>&1 \
+            | sort | uniq -c | sort -rn | head -30
+          echo "### DynamoDB present?"
+          jq -r '.Traces[].Segments[].Document | fromjson | .. | objects | .name? // empty' traces.json 2>/dev/null \
+            | grep -qi dynamo && echo "YES — DynamoDB subsegments found" || echo "NO"
