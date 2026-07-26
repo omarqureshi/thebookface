@@ -473,7 +473,7 @@ DEPENDENCIES
   aws_lambda_ric (~> 3.2)
   bootsnap
   brakeman
-  cancancan
+  cancancan (~> 3.6)
   capybara
   cucumber-rails
   cuprite
