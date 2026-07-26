@@ -20,6 +20,18 @@
 
       <div class="comment__meta">
         <span class="comment__time"><%= time_ago_in_words(comment.created_at) %> ago</span>
+        <% if can? :update, comment %>
+          <%# Edit sits inline with Delete; its form drops in full-width below. %>
+          <details class="comment-edit">
+            <summary class="comment__action">Edit</summary>
+            <%= form_with model: comment, url: post_comment_path(post, comment), method: :patch, class: "comment-form" do |f| %>
+              <%= f.text_area :body, rows: 2, class: "comment-form__input", "aria-label": "Edit comment" %>
+              <div class="comment-form__actions">
+                <%= f.submit "Save", class: "btn btn--primary btn--sm" %>
+              </div>
+            <% end %>
+          </details>
+        <% end %>
         <% if can? :destroy, comment %>
           <%= button_to "Delete", post_comment_path(post, comment), method: :delete,
                 class: "comment__action comment__action--danger",
@@ -27,19 +39,6 @@
                 data: { turbo_confirm: "Delete this comment?" } %>
         <% end %>
       </div>
-
-      <% if can? :update, comment %>
-        <%# Edit drops an inline form in below the meta (like Reply). %>
-        <details class="reply comment-edit">
-          <summary class="reply__toggle">Edit</summary>
-          <%= form_with model: comment, url: post_comment_path(post, comment), method: :patch, class: "comment-form" do |f| %>
-            <%= f.text_area :body, rows: 2, class: "comment-form__input", "aria-label": "Edit comment" %>
-            <div class="comment-form__actions">
-              <%= f.submit "Save", class: "btn btn--primary btn--sm" %>
-            </div>
-          <% end %>
-        </details>
-      <% end %>
 
       <% if signed_in? %>
         <details class="reply">

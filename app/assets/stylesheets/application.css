@@ -229,7 +229,7 @@ a:hover { text-decoration: underline; }
 .comment__author { font-weight: 700; font-size: .9rem; }
 .comment__text { white-space: pre-wrap; }
 .comment__text p { margin: .15rem 0 0; }
-.comment__meta { display: flex; align-items: center; gap: .8rem; margin: .2rem 0 0 .8rem; }
+.comment__meta { display: flex; align-items: center; flex-wrap: wrap; gap: .8rem; margin: .2rem 0 0 .8rem; }
 .comment__time { color: var(--muted); font-size: .78rem; }
 
 /* The reply toggle sits under the time; the form drops in below it. */
@@ -273,6 +273,12 @@ turbo-frame { display: block; }
 .comment__action--danger { color: #c0362c; }
 .comment__action--danger:hover { color: #a02a22; }
 .comment__action-form { display: inline; margin: 0; }
+/* Edit is an inline action next to Delete; opening it drops the form onto its
+   own full-width line below the meta row (order pushes it past Delete). */
+.comment-edit > summary { list-style: none; }
+.comment-edit > summary::-webkit-details-marker { display: none; }
+.comment-edit[open] > summary { color: var(--fb-blue); }
+.comment-edit[open] { flex-basis: 100%; order: 99; }
 
 .comment__bubble--deleted { background: transparent; border: 1px dashed var(--line); font-style: italic; }
 .avatar--ghost { background: var(--line); color: var(--muted); }
