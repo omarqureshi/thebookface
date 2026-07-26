@@ -22,10 +22,11 @@ jobs:
 
       - name: Inspect Function URL auth + resource policy + OAC
         run: |
-          set -uo pipefail
-          FN=$(aws cloudformation describe-stack-resource \
-            --stack-name TheBookface-staging --logical-resource-id Rails \
-            --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          set +e   # keep probing even if one call fails
+          FN=$(aws cloudformation describe-stack-resources \
+            --stack-name TheBookface-staging \
+            --query "StackResources[?ResourceType=='AWS::Lambda::Function' && starts_with(LogicalResourceId, 'Rails')].PhysicalResourceId | [0]" \
+            --output text)
           echo "### function: $FN"
           echo "### function-url-config:"
           aws lambda get-function-url-config --function-name "$FN" \
