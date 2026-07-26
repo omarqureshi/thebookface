@@ -91,56 +91,71 @@ class Reaction
     # And a `Model.transaction` block only takes DSL ops, so one raw op forces the
     # whole transaction raw. Don't "clean this up" into the DSL — it can't do it.
     def write!(post_id:, target:, user_sub:, old_emoji:, new_emoji:)
-      client = Dynamoid.adapter.client
-      sk = sk_for(user_sub, target)
+      Dynamoid.adapter.client.transact_write_items(transact_items: [
+        reaction_item_op(post_id: post_id, sk: sk_for(user_sub, target),
+                         user_sub: user_sub, target: target,
+                         old_emoji: old_emoji, new_emoji: new_emoji),
+        count_cache_op(post_id: post_id, target: target,
+                       old_emoji: old_emoji, new_emoji: new_emoji)
+      ])
+    end
 
-      # 1. The per-user reaction item (source of truth).
-      item_op =
-        if old_emoji.nil?
-          { put: {
-            table_name: table_name.to_s,
-            item: { "post_id" => post_id, "sk" => sk, "emoji" => new_emoji,
-                    "user_sub" => user_sub, "target" => target },
-            condition_expression: "attribute_not_exists(post_id)"
-          } }
-        elsif new_emoji.nil?
-          { delete: {
-            table_name: table_name.to_s,
-            key: { "post_id" => post_id, "sk" => sk },
-            condition_expression: "emoji = :old",
-            expression_attribute_values: { ":old" => old_emoji }
-          } }
-        else
-          { update: {
-            table_name: table_name.to_s,
-            key: { "post_id" => post_id, "sk" => sk },
-            update_expression: "SET emoji = :new",
-            condition_expression: "emoji = :old",
-            expression_attribute_values: { ":new" => new_emoji, ":old" => old_emoji }
-          } }
-        end
+    # The per-user reaction item (source of truth), written conditionally on its
+    # prior value so a concurrent change cancels the whole transaction:
+    #   add    -> PUT, only if no reaction exists yet
+    #   remove -> DELETE, only if the emoji is still the one we read
+    #   switch -> UPDATE the emoji, only if it's still the one we read
+    def reaction_item_op(post_id:, sk:, user_sub:, target:, old_emoji:, new_emoji:)
+      if old_emoji.nil?
+        { put: {
+          table_name: table_name.to_s,
+          item: { "post_id" => post_id, "sk" => sk, "emoji" => new_emoji,
+                  "user_sub" => user_sub, "target" => target },
+          condition_expression: "attribute_not_exists(post_id)"
+        } }
+      elsif new_emoji.nil?
+        { delete: {
+          table_name: table_name.to_s,
+          key: { "post_id" => post_id, "sk" => sk },
+          condition_expression: "emoji = :old",
+          expression_attribute_values: { ":old" => old_emoji }
+        } }
+      else
+        { update: {
+          table_name: table_name.to_s,
+          key: { "post_id" => post_id, "sk" => sk },
+          update_expression: "SET emoji = :new",
+          condition_expression: "emoji = :old",
+          expression_attribute_values: { ":new" => new_emoji, ":old" => old_emoji }
+        } }
+      end
+    end
 
-      # 2. The target's count cache: atomic ADD of the deltas.
+    # The target's denormalized { emoji => count } cache: one atomic ADD that
+    # moves the count off the old emoji (-1) and onto the new (+1). It's a
+    # nested-map increment (`reactions.<emoji>`) — the op Dynamoid's transaction
+    # DSL can't express, hence the raw expression.
+    def count_cache_op(post_id:, target:, old_emoji:, new_emoji:)
       deltas = Hash.new(0)
       deltas[old_emoji] -= 1 if old_emoji
       deltas[new_emoji] += 1 if new_emoji
+
       names = {}
       values = {}
-      adds = deltas.each_with_index.map do |(e, d), i|
-        names["#e#{i}"] = e
-        values[":d#{i}"] = d
+      adds = deltas.each_with_index.map do |(emoji, delta), i|
+        names["#e#{i}"] = emoji
+        values[":d#{i}"] = delta
         "reactions.#e#{i} :d#{i}"
       end
+
       cache_table, cache_key = target_ref(post_id, target)
-      cache_op = { update: {
+      { update: {
         table_name: cache_table,
         key: cache_key,
         update_expression: "ADD #{adds.join(', ')}",
         expression_attribute_names: names,
         expression_attribute_values: values
       } }
-
-      client.transact_write_items(transact_items: [item_op, cache_op])
     end
   end
 end
