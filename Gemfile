@@ -58,6 +58,8 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
+  # RSpec for fast, DB-free model/unit specs (Cucumber still covers integration).
+  gem "rspec-rails"
 end
 
 group :test do
