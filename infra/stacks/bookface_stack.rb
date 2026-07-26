@@ -245,11 +245,14 @@ class BookfaceStack < AWSCDK::Stack
     # raw public Function URL — the previous behaviour.
     custom_domain = !@domain.nil? && !Bookface::HOSTED_ZONE_ID.to_s.empty?
 
+    # Public (NONE) even behind the custom domain. The "correct" hardening —
+    # AWS_IAM + a CloudFront OAC signing the origin request — returned 403 from the
+    # Function URL despite a textbook setup (auth type, resource policy, SourceArn,
+    # OAC lambda/always/sigv4 all verified). Fronting a public Function URL with
+    # CloudFront is the reliable path; the raw Function URL is therefore reachable
+    # directly, which is acceptable for this demo. Revisit OAC hardening later.
     url = rails.add_function_url(
-      {
-        auth_type: custom_domain ? AWSCDK::Lambda::FunctionURLAuthType::AWS_IAM
-                                 : AWSCDK::Lambda::FunctionURLAuthType::NONE
-      }
+      { auth_type: AWSCDK::Lambda::FunctionURLAuthType::NONE }
     )
 
     app_base = custom_domain ? attach_custom_domain(url) : url.url
@@ -319,8 +322,8 @@ class BookfaceStack < AWSCDK::Stack
     cert_props[:subject_alternative_names] = [www] if www
     cert = AWSCDK::CertificateManager::Certificate.new(self, "AppCert", cert_props)
 
-    # One OAC-signed origin, reused across behaviours so CloudFront dedupes it.
-    origin = AWSCDK::CloudFrontOrigins::FunctionURLOrigin.with_origin_access_control(url)
+    # Function URL origin, reused across behaviours so CloudFront dedupes it.
+    origin = AWSCDK::CloudFrontOrigins::FunctionURLOrigin.new(url)
 
     # www -> apex, as a viewer-request CloudFront Function: the 301 is returned
     # before the origin is ever hit, so a www request never costs a Lambda
