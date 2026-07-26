@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 # A Bookface post — backed by DynamoDB via Dynamoid (this app is generated with
-# --skip-active-record). The table is created by the CDK stack; its name arrives
-# at runtime via POSTS_TABLE. The author is a Cognito user (we store their `sub`
-# and display name; Cognito is the system of record for users).
+# --skip-active-record). The table is created by the CDK stack; its name is
+# resolved in config (config/dynamodb.yml). The author is a Cognito user (we
+# store their `sub` and display name; Cognito is the system of record for users).
 class Post
   include Dynamoid::Document
 
-  table name: ENV.fetch("POSTS_TABLE", "bookface-posts").to_sym, key: :id
+  table name: Rails.application.config.x.dynamodb.posts_table.to_sym, key: :id
 
   field :author_sub
   field :author_name

@@ -20,7 +20,7 @@ require "base64"
 class Comment
   include Dynamoid::Document
 
-  table name: ENV.fetch("COMMENTS_TABLE", "bookface-comments").to_sym, key: :post_id
+  table name: Rails.application.config.x.dynamodb.comments_table.to_sym, key: :post_id
   range :path # sort key — the materialized path
 
   # Set on a reply before save; blank means "reply to the post itself".

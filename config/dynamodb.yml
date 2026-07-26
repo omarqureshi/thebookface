@@ -1,0 +1,20 @@
+# DynamoDB table names.
+#
+# The tables are created by the CDK stack (infra/) and their real, generated
+# names are handed to the app at runtime via these env vars. The defaults are
+# what local dev and test use against DynamoDB Local (see compose.yaml). This is
+# the one place the env vars are read — models take their table name from
+# config.x.dynamodb (wired in config/application.rb), never from ENV directly.
+default: &default
+  posts_table: <%= ENV.fetch("POSTS_TABLE", "bookface-posts") %>
+  comments_table: <%= ENV.fetch("COMMENTS_TABLE", "bookface-comments") %>
+  reactions_table: <%= ENV.fetch("REACTIONS_TABLE", "bookface-reactions") %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

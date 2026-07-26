@@ -38,5 +38,10 @@ module Bookface
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # DynamoDB table names (see config/dynamodb.yml). Read from the environment
+    # here, at the config boundary, so models reference config.x.dynamodb rather
+    # than reaching into ENV themselves.
+    config.x.dynamodb = config_for(:dynamodb)
   end
 end

@@ -13,7 +13,7 @@
 class Reaction
   include Dynamoid::Document
 
-  table name: ENV.fetch("REACTIONS_TABLE", "bookface-reactions").to_sym, key: :post_id
+  table name: Rails.application.config.x.dynamodb.reactions_table.to_sym, key: :post_id
   range :sk
 
   field :emoji
