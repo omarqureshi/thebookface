@@ -1,0 +1,22 @@
+<% content_for :title, "Edit your post" %>
+
+<div class="feed">
+  <%= link_to "← Back to the post", post_path(@post), class: "backlink" %>
+
+  <div class="card">
+    <h2 class="thread__title">Edit your post</h2>
+
+    <%= form_with model: @post, url: post_path(@post), method: :patch do |f| %>
+      <% if @post.errors.any? %>
+        <div class="flash flash--alert"><%= @post.errors.full_messages.to_sentence %></div>
+      <% end %>
+      <%= f.text_area :body, rows: 5, class: "composer__input", "aria-label": "Post body" %>
+      <div class="composer__actions">
+        <%= link_to "Cancel", post_path(@post), class: "btn btn--ghost" %>
+        <%= f.submit "Save changes", class: "btn btn--primary" %>
+      </div>
+    <% end %>
+
+    <p class="muted">Editing changes the text only — attached photos stay as they are.</p>
+  </div>
+</div>

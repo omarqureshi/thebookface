@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
   root "posts#index"
 
-  resources :posts, only: %i[index show new create] do
-    resources :comments, only: %i[create]
+  resources :posts, only: %i[index show new create edit update destroy] do
+    resources :comments, only: %i[create update destroy]
     post "reactions", to: "reactions#toggle" # body: target, emoji
   end
 

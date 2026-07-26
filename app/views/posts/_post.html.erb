@@ -24,5 +24,15 @@
         <%= pluralize(post.comment_count, "comment") %> &amp; replies
       <% end %>
     <% end %>
+
+    <% if can? :update, post %>
+      <span class="owner-actions owner-actions--inline">
+        <%= link_to "Edit", edit_post_path(post), class: "owner-actions__link" %>
+        <%= button_to "Delete", post_path(post), method: :delete,
+              class: "owner-actions__link owner-actions__link--danger",
+              form_class: "owner-actions__form",
+              data: { turbo_confirm: "Delete this post and its thread?" } %>
+      </span>
+    <% end %>
   </footer>
 </article>

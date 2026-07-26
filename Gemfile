@@ -37,6 +37,11 @@ gem "aws-sdk-s3", "~> 1"
 gem "omniauth_openid_connect", "~> 0.8"
 gem "omniauth-rails_csrf_protection", "~> 1.0"
 
+# Authorization: who may edit/delete what. Ownership is a plain attribute match
+# (author_sub), so CanCanCan works fine over our Dynamoid documents + the
+# session-backed user (we authorize already-loaded objects; no accessible_by).
+gem "cancancan", "~> 3.6"
+
 # --- Assets: no Node, no build step ---------------------------------------
 # Stimulus/Turbo ship over an importmap; propshaft only fingerprints. Rails
 # serves /assets itself in the demo (RAILS_SERVE_STATIC_FILES); in front of real

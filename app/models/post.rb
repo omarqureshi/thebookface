@@ -52,6 +52,16 @@ class Post
     Comment.where(post_id: id).count
   end
 
+  # Delete the post and everything under it — every comment in the thread and
+  # every reaction (all colocated by post_id), so nothing is left dangling.
+  # `delete_all` queries the keys and removes them via BatchWriteItem (chunked to
+  # 25), not one DeleteItem per row.
+  def destroy_with_thread!
+    Comment.where(post_id: id).delete_all
+    Reaction.where(post_id: id).delete_all
+    delete
+  end
+
   # Attached images with string keys, for the view.
   def media_items
     Array(media).map { |m| m.respond_to?(:transform_keys) ? m.transform_keys(&:to_s) : m }

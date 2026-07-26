@@ -250,6 +250,32 @@ a:hover { text-decoration: underline; }
 turbo-frame { display: block; }
 .post__foot turbo-frame .thread__list { margin-top: .6rem; }
 
+/* ---- ownership: edit / delete controls ---- */
+.owner-actions { display: flex; gap: .8rem; align-items: center; }
+.owner-actions--inline { margin-top: .5rem; font-size: .85rem; }
+.owner-actions__form { display: inline; margin: 0; }
+.owner-actions__link {
+  background: none; border: none; padding: 0; cursor: pointer; font: inherit;
+  color: var(--muted); font-weight: 600;
+}
+.owner-actions__link:hover { color: var(--ink); text-decoration: underline; }
+.owner-actions__link--danger { color: #c0362c; }
+.owner-actions__link--danger:hover { color: #a02a22; }
+/* On the post page the owner row hangs under the post with a divider. */
+.post > .owner-actions { margin-top: .6rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+
+.comment__action {
+  background: none; border: none; padding: 0; cursor: pointer; font: inherit;
+  font-size: .8rem; font-weight: 700; color: var(--muted);
+}
+.comment__action:hover { color: var(--ink); }
+.comment__action--danger { color: #c0362c; }
+.comment__action--danger:hover { color: #a02a22; }
+.comment__action-form { display: inline; margin: 0; }
+
+.comment__bubble--deleted { background: transparent; border: 1px dashed var(--line); font-style: italic; }
+.avatar--ghost { background: var(--line); color: var(--muted); }
+
 /* ---- media / uploads ---- */
 .is-hidden { display: none !important; }
 .composer__actions { display: flex; gap: .5rem; justify-content: flex-end; align-items: center; }

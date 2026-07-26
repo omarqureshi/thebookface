@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "base64"
+
 # Hierarchical comments on a post, modelled the DynamoDB way: one table, keyed by
 # (post_id, path).
 #
@@ -30,7 +32,11 @@ class Comment
   # Denormalized reaction cache (see Post#reactions / Reaction.toggle).
   field :reactions, :raw, default: {}
 
-  validates :body, presence: true, length: { maximum: 5_000 }
+  # Soft-delete flag — a deleted comment that still has replies keeps its node
+  # (so the subtree stays threaded) but renders as "[deleted]".
+  field :deleted, :boolean, default: false
+
+  validates :body, presence: true, length: { maximum: 5_000 }, unless: :deleted?
   validates :author_sub, presence: true
   validates :post_id, presence: true
 
@@ -58,6 +64,35 @@ class Comment
   # The cache, cleaned for display: string emoji keys, positive counts only.
   def reaction_counts
     (reactions || {}).transform_keys(&:to_s).transform_values(&:to_i).select { |_e, n| n.positive? }
+  end
+
+  def deleted?
+    !!deleted
+  end
+
+  # URL id for the edit/update/destroy routes. `path` contains "/", so it can't
+  # be a raw route segment — encode it (the controller decodes).
+  def to_param
+    Base64.urlsafe_encode64(path)
+  end
+
+  # Does anything nest under this comment? A reply's path starts with mine + "/".
+  def replies?
+    Comment.where(post_id: post_id, "path.begins_with": "#{path}/").first.present?
+  end
+
+  # Remove this comment (and its reaction rows — cleared via BatchWriteItem). If it
+  # has replies, soft-delete so the subtree stays threaded; otherwise delete it.
+  def remove!
+    Reaction.where(post_id: post_id, target: reaction_target).delete_all
+    if replies?
+      self.deleted = true
+      self.body = nil
+      self.reactions = {}
+      save
+    else
+      delete
+    end
   end
 
   private
