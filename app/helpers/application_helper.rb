@@ -24,6 +24,17 @@ module ApplicationHelper
     MediaStorage.public_url(key)
   end
 
+  # The signed-in user's avatar — their uploaded photo if set, else their
+  # initials on the usual gradient. `extra` adds modifiers (e.g. "avatar--lg").
+  def current_avatar(extra = nil)
+    classes = ["avatar", extra].compact.join(" ")
+    if (url = current_profile&.avatar_url)
+      tag.span("", class: "#{classes} avatar--photo", style: "background-image: url(#{url})")
+    else
+      tag.span(current_user.initials, class: classes)
+    end
+  end
+
   # Stable DOM id for a subject's reactions bar, so a reaction toggle can swap
   # just that bar via Turbo Stream (the post, or a specific comment).
   def reactions_dom_id(post, subject)

@@ -58,6 +58,9 @@ a:hover { text-decoration: underline; }
 }
 .avatar--sm { width: 30px; height: 30px; font-size: .72rem; }
 .avatar--lg { width: 64px; height: 64px; font-size: 1.4rem; }
+.avatar--photo { background-size: cover; background-position: center; color: transparent; }
+.avatar-edit { display: flex; align-items: center; gap: .8rem; }
+.avatar-edit__btn { background: none; border: 0; padding: 0; cursor: pointer; border-radius: 50%; }
 
 /* Profile page + edit form. */
 .profile__head { display: flex; align-items: center; gap: 1rem; margin-bottom: .8rem; }

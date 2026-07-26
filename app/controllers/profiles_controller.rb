@@ -18,6 +18,7 @@ class ProfilesController < ApplicationController
     @profile = current_profile
     @profile.display_name = profile_params[:display_name]
     @profile.bio = profile_params[:bio]
+    @profile.avatar_key = accepted_avatar_key
     if @profile.save
       redirect_to profile_path, notice: "Profile saved."
     else
@@ -28,6 +29,16 @@ class ProfilesController < ApplicationController
   private
 
   def profile_params
-    params.require(:profile).permit(:display_name, :bio)
+    params.require(:profile).permit(:display_name, :bio, :avatar_key)
+  end
+
+  # The browser uploads the avatar straight to S3 and posts back its key. Trust
+  # it only if it's under this user's own upload prefix (all presigning ever let
+  # them write); otherwise keep the avatar they already had.
+  def accepted_avatar_key
+    key = profile_params[:avatar_key].to_s
+    return @profile.avatar_key if key.blank?
+
+    MediaStorage.owned_by?(key, current_user.sub) ? key : @profile.avatar_key
   end
 end

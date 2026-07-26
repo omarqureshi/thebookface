@@ -5,7 +5,7 @@
 
   <div class="card">
     <header class="profile__head">
-      <span class="avatar avatar--lg"><%= current_user.initials %></span>
+      <%= current_avatar("avatar--lg") %>
       <div>
         <h1 class="profile__name"><%= @profile.display_name.presence || current_user.name %></h1>
         <div class="muted"><%= current_user.email %></div>

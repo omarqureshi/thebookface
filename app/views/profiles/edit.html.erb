@@ -11,6 +11,24 @@
         <div class="flash flash--alert"><%= @profile.errors.full_messages.to_sentence %></div>
       <% end %>
 
+      <div class="field" data-controller="avatar" data-avatar-url-value="<%= uploads_path %>">
+        <span class="field__label">Photo</span>
+        <div class="avatar-edit">
+          <button type="button" class="avatar-edit__btn" data-action="avatar#open" aria-label="Change your photo">
+            <% if @profile.avatar_url %>
+              <span class="avatar avatar--lg avatar--photo" data-avatar-target="preview"
+                    style="background-image: url(<%= @profile.avatar_url %>)"></span>
+            <% else %>
+              <span class="avatar avatar--lg" data-avatar-target="preview"><%= current_user.initials %></span>
+            <% end %>
+          </button>
+          <span class="muted">Click the photo to change it</span>
+        </div>
+        <%= file_field_tag "avatar_file", accept: "image/*", class: "is-hidden",
+              data: { avatar_target: "input", action: "avatar#pick" } %>
+        <%= f.hidden_field :avatar_key, data: { avatar_target: "field" } %>
+      </div>
+
       <label class="field">
         <span class="field__label">Display name</span>
         <%= f.text_field :display_name, class: "composer__input", placeholder: current_user.name %>
@@ -24,7 +42,7 @@
 
       <div class="composer__actions">
         <%= link_to "Cancel", profile_path, class: "btn btn--ghost" %>
-        <%= f.submit "Save", class: "btn btn--primary" %>
+        <%= f.submit "Save", class: "btn btn--primary", data: { avatar_target: "submit" } %>
       </div>
     <% end %>
   </div>

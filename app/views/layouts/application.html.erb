@@ -30,7 +30,7 @@
 
         <% if signed_in? %>
           <%= link_to profile_path, class: "topbar__me", title: "Your profile" do %>
-            <span class="avatar"><%= current_user.initials %></span>
+            <%= current_avatar %>
             <span class="topbar__name"><%= current_profile.display_name.presence || current_user.name %></span>
           <% end %>
           <%# Logout redirects cross-origin to the Cognito hosted-UI logout, which

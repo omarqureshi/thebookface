@@ -19,3 +19,11 @@ Feature: Editing your profile
     When I set my display name to "Ada L." and bio ""
     And I open the feed
     Then I should see "Ada L."
+
+  Scenario: Setting a profile photo
+    When I set my avatar to an image I uploaded
+    Then my profile shows my photo
+
+  Scenario: An avatar key I do not own is ignored
+    When I try to set my avatar to someone else's key
+    Then my profile has no photo
