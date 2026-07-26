@@ -30,7 +30,9 @@
         <% if signed_in? %>
           <span class="avatar" title="<%= current_user.email %>"><%= current_user.initials %></span>
           <span class="topbar__name"><%= current_user.name %></span>
-          <%= button_to "Log out", logout_path, method: :delete, class: "btn btn--ghost" %>
+          <%# Logout redirects cross-origin to the Cognito hosted-UI logout, which
+              Turbo's fetch can't follow — do a full-page navigation, like sign-in. %>
+          <%= button_to "Log out", logout_path, method: :delete, class: "btn btn--ghost", data: { turbo: false } %>
         <% else %>
           <%= render "shared/signin" %>
         <% end %>
