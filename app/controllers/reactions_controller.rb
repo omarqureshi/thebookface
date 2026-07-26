@@ -19,7 +19,7 @@ class ReactionsController < ApplicationController
     )
 
     subject = reaction_subject(post, target)
-    mine = Reaction.mine_for_post(post.id, current_user.sub)[target]
+    mine = current_user.reactions(post)[target]
 
     respond_to do |format|
       format.turbo_stream do

@@ -18,6 +18,12 @@ class User
     name.to_s.split(/\s+/).map { |part| part[0] }.first(2).join.upcase.presence || "?"
   end
 
+  # This user's own reactions across a post's thread — { target => emoji }, one
+  # Query — for highlighting "your" emoji in each reactions bar.
+  def reactions(post)
+    Reaction.mine_for_post(post.id, sub)
+  end
+
   def to_session
     { "sub" => sub, "email" => email, "name" => name }
   end

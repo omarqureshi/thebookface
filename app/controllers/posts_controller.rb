@@ -13,10 +13,10 @@ class PostsController < ApplicationController
     @post = Post.find(params[:id])
     @comments = Comment.thread_for(@post.id) # pre-ordered thread, one Query
     @comment = Comment.new
-    # The current user's own reactions across the whole thread — one Query,
-    # keyed { target => emoji } for highlighting. Counts come from each item's
-    # cache, so this is the only extra read.
-    @my_reactions = signed_in? ? Reaction.mine_for_post(@post.id, current_user.sub) : {}
+    # The current user's own reactions across the whole thread ({ target =>
+    # emoji }, one Query) for highlighting; {} when signed out. Counts come from
+    # each item's cache, so this is the only extra read.
+    @my_reactions = current_user&.reactions(@post) || {}
   rescue Dynamoid::Errors::RecordNotFound
     redirect_to root_path, alert: "That post no longer exists."
   end
