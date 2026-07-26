@@ -75,6 +75,7 @@ class BookfaceStack < AWSCDK::Stack
     posts     = DynamoSchema.table(self, "Posts", Post, removal_policy: @removal_policy)
     comments  = DynamoSchema.table(self, "Comments", Comment, removal_policy: @removal_policy)
     reactions = DynamoSchema.table(self, "Reactions", Reaction, removal_policy: @removal_policy)
+    profiles  = DynamoSchema.table(self, "Profiles", Profile, removal_policy: @removal_policy)
 
     # --- Media: private S3 bucket, browser-uploaded, CloudFront-served --------
     # Images are uploaded straight from the browser with presigned POSTs (bytes
@@ -197,6 +198,7 @@ class BookfaceStack < AWSCDK::Stack
           "POSTS_TABLE" => posts.table_name,
           "COMMENTS_TABLE" => comments.table_name,
           "REACTIONS_TABLE" => reactions.table_name,
+          "PROFILES_TABLE" => profiles.table_name,
           "MEDIA_BUCKET" => media.bucket_name,
           "MEDIA_PUBLIC_URL" => "https://#{media_cdn.distribution_domain_name}",
           # OIDC issuer for the user pool — the app discovers endpoints from here.
@@ -213,6 +215,7 @@ class BookfaceStack < AWSCDK::Stack
     posts.grant_read_write_data(rails)
     comments.grant_read_write_data(rails)
     reactions.grant_read_write_data(rails)
+    profiles.grant_read_write_data(rails)
     # Uploads are presigned (s3:PutObject); deleting a post also reaps its images
     # server-side (s3:DeleteObject). No read grant — CloudFront serves the bucket.
     media.grant_put(rails)

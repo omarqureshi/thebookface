@@ -3,7 +3,7 @@
 # create the tables once, then purge every item before each scenario for a clean
 # slate — cheaper than dropping/recreating tables each time.
 
-MODELS = [Post, Comment, Reaction].freeze
+MODELS = [Post, Comment, Reaction, Profile].freeze
 
 # Create tables up front (idempotent — ignore "already exists").
 MODELS.each do |model|

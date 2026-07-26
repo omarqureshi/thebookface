@@ -23,6 +23,7 @@ unless defined?(Rails)
         dynamodb.posts_table = "posts"
         dynamodb.comments_table = "comments"
         dynamodb.reactions_table = "reactions"
+        dynamodb.profiles_table = "profiles"
         x = ActiveSupport::OrderedOptions.new
         x.dynamodb = dynamodb
         config = ActiveSupport::OrderedOptions.new
@@ -34,9 +35,10 @@ unless defined?(Rails)
 end
 
 models_dir = File.expand_path("../../app/models", __dir__)
-%w[post comment reaction].each { |m| require File.join(models_dir, m) }
+%w[post comment reaction profile].each { |m| require File.join(models_dir, m) }
 
 module AppModels
   # Construct id => Dynamoid model, in the order the stack creates them.
-  TABLES = { "Posts" => Post, "Comments" => Comment, "Reactions" => Reaction }.freeze
+  TABLES = { "Posts" => Post, "Comments" => Comment, "Reactions" => Reaction,
+             "Profiles" => Profile }.freeze
 end

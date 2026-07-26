@@ -9,6 +9,7 @@ default: &default
   posts_table: <%= ENV.fetch("POSTS_TABLE", "bookface-posts") %>
   comments_table: <%= ENV.fetch("COMMENTS_TABLE", "bookface-comments") %>
   reactions_table: <%= ENV.fetch("REACTIONS_TABLE", "bookface-reactions") %>
+  profiles_table: <%= ENV.fetch("PROFILES_TABLE", "bookface-profiles") %>
 
 development:
   <<: *default
