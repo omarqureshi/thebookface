@@ -4,7 +4,7 @@
     A soft-deleted comment (one that still has replies) renders as a tombstone so
     the subtree stays threaded. %>
 <% indent = [comment.depth, 8].min %>
-<div class="comment" id="c-<%= comment.path.tr('/', '-') %>" style="--indent: <%= indent %>">
+<div class="comment" id="<%= comment.anchor %>" style="--indent: <%= indent %>">
   <% if comment.deleted? %>
     <span class="avatar avatar--sm avatar--ghost">×</span>
     <div class="comment__body">

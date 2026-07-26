@@ -3,6 +3,12 @@ source "https://rubygems.org"
 gem "rails", "~> 8.1.3"
 gem "puma", ">= 5.0"
 
+# base64 became a bundled (non-default) gem in Ruby 3.4+, and the app uses Base64
+# directly (encoding comment paths into URL segments / DOM ids), so declare it
+# rather than lean on a transitive copy. Bundler.require then loads it app-wide —
+# no scattered `require "base64"`.
+gem "base64"
+
 # --- Running on AWS Lambda -------------------------------------------------
 # Lamby adapts the Lambda event (Function URL / API Gateway / ALB) to Rack; the
 # handler is config/environment.Lamby.cmd (see the Dockerfile). aws_lambda_ric is

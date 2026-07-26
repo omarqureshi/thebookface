@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "base64"
-
 class CommentsController < ApplicationController
   before_action :require_login
   before_action :load_and_authorize_comment, only: %i[update destroy]
@@ -16,8 +14,10 @@ class CommentsController < ApplicationController
       )
     )
     if @comment.save
-      redirect_to post_path(@post, anchor: "c-#{@comment.path.tr('/', '-')}")
+      redirect_to post_path(@post, anchor: @comment.anchor)
     else
+      # Re-rendering the post page needs the same setup the show action does.
+      @my_reactions = current_user&.reactions(@post) || {}
       render "posts/show", status: :unprocessable_entity
     end
   rescue Dynamoid::Errors::RecordNotFound
@@ -27,7 +27,7 @@ class CommentsController < ApplicationController
   def update
     @comment.body = comment_params[:body]
     if @comment.save
-      redirect_to post_path(@post, anchor: "c-#{@comment.path.tr('/', '-')}"), notice: "Comment updated."
+      redirect_to post_path(@post, anchor: @comment.anchor), notice: "Comment updated."
     else
       redirect_to post_path(@post), alert: "A comment can't be empty."
     end

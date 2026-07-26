@@ -9,7 +9,7 @@
   </header>
 
   <% if post.body.present? %><div class="post__body"><%= simple_format(post.body) %></div><% end %>
-  <%= render "media", post: post %>
+  <%= render "posts/media", post: post %>
 
   <%# React straight from the feed (mine highlight is only computed on the post
       page to keep the feed a single query). %>

@@ -27,3 +27,10 @@ Feature: Comments and nested replies
     And I reply "A reply to the reply" to the comment "A reply"
     Then I should see "A reply to the reply"
     And the comment "A reply to the reply" should be nested at depth 2
+
+  Scenario: An empty comment is rejected and the page still renders
+    Given the post "Hello Bookface" has a comment "First!" by "Grace Hopper"
+    When I open the post "Hello Bookface"
+    And I comment ""
+    Then I should see "Hello Bookface"
+    And I should see "1 comment"

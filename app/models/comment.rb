@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "base64"
-
 # Hierarchical comments on a post, modelled the DynamoDB way: one table, keyed by
 # (post_id, path).
 #
@@ -50,6 +48,13 @@ class Comment
 
   def depth
     path.to_s.count("/")
+  end
+
+  # This comment's stable DOM id / URL fragment: the path with "/" turned to "-"
+  # and a "c-" prefix so it's a valid id (e.g. "c-ab12-cd34"). Used as the div id
+  # and as the scroll target after posting or editing.
+  def anchor
+    "c-#{path.tr('/', '-')}"
   end
 
   def author

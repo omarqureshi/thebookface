@@ -484,6 +484,7 @@ DEPENDENCIES
   aws-sdk-s3 (~> 1)
   aws-xray-sdk (~> 0.16.0)
   aws_lambda_ric (~> 3.2)
+  base64
   bootsnap
   brakeman
   cancancan (~> 3.6)

@@ -12,7 +12,7 @@
       </div>
     </header>
     <% if @post.body.present? %><div class="post__body"><%= simple_format(@post.body) %></div><% end %>
-    <%= render "media", post: @post %>
+    <%= render "posts/media", post: @post %>
     <%= render "reactions/bar", post: @post, subject: @post, mine: @my_reactions["post"] %>
     <% if can? :update, @post %>
       <footer class="owner-actions">
