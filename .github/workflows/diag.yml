@@ -1,0 +1,35 @@
+name: Diag XRay
+
+# Read-only: confirms DynamoDB/S3 subsegments are landing in X-Ray. Delete after.
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  xray:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionsCDKRole
+          aws-region: us-east-1
+
+      - name: Look for DynamoDB/S3 subsegments in recent traces
+        run: |
+          set +e
+          END=$(date -u +%s); START=$((END-1200))
+          IDS=$(aws xray get-trace-summaries --start-time "$START" --end-time "$END" \
+            --query 'TraceSummaries[].Id' --output text 2>&1)
+          echo "### trace-summaries result:"; echo "$IDS" | head -3
+          NIDS=$(echo "$IDS" | tr '\t' '\n' | grep -E '^[0-9a-f-]{20,}$' | head -8 | tr '\n' ' ')
+          if [ -z "$NIDS" ]; then echo "!! no trace ids (propagation lag, or no xray:Get perms)"; exit 0; fi
+          echo "### traces: $NIDS"
+          DOCS=$(aws xray batch-get-traces --trace-ids $NIDS --query 'Traces[].Segments[].Document' --output text 2>&1)
+          echo "### distinct subsegment names + aws operations seen:"
+          echo "$DOCS" | grep -oiE '"name"[: ]*"[^"]*"|"operation"[: ]*"[^"]*"|"table_name"[: ]*"[^"]*"' | sort | uniq -c | sort -rn | head -30
+          echo "### DynamoDB present?"; echo "$DOCS" | grep -qiE 'dynamodb|"name": ?"DynamoDB"' && echo "YES — DynamoDB subsegments found" || echo "NO"
