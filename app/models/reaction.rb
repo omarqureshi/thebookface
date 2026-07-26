@@ -79,6 +79,17 @@ class Reaction
       end
     end
 
+    # Both writes commit atomically via a DynamoDB transaction. We drop to the
+    # raw client rather than Dynamoid's `Model.transaction` DSL on purpose — the
+    # DSL can't express either op here:
+    #   * The count cache is an atomic `ADD reactions.<emoji> :delta` on a nested
+    #     map key. Dynamoid's transactional increment (ItemUpdater) only accepts
+    #     declared top-level attributes, so it can't target `reactions.<emoji>`.
+    #   * The reaction item is written conditionally on its *prior* value
+    #     (`emoji = :old`, and a conditional delete), beyond the DSL's built-in
+    #     attribute_exists/not_exists conditions.
+    # And a `Model.transaction` block only takes DSL ops, so one raw op forces the
+    # whole transaction raw. Don't "clean this up" into the DSL — it can't do it.
     def write!(post_id:, target:, user_sub:, old_emoji:, new_emoji:)
       client = Dynamoid.adapter.client
       sk = sk_for(user_sub, target)
