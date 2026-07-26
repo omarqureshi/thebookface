@@ -100,8 +100,14 @@ GEM
       aws-sdk-core (~> 3, >= 3.254.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
+    aws-sdk-xray (1.4.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
     aws-sigv4 (1.12.1)
       aws-eventstream (~> 1, >= 1.0.2)
+    aws-xray-sdk (0.16.0)
+      aws-sdk-xray (~> 1.4.0)
+      multi_json (~> 1)
     aws_lambda_ric (3.2.0)
       logger (>= 1.4, < 2.0)
     base64 (0.3.0)
@@ -240,6 +246,7 @@ GEM
       drb (~> 2.0)
       prism (~> 1.5)
     msgpack (1.8.3)
+    multi_json (1.21.1)
     multi_test (1.1.0)
     net-http (0.9.1)
       uri (>= 0.11.1)
@@ -461,6 +468,7 @@ PLATFORMS
 DEPENDENCIES
   aws-sdk-dynamodb (~> 1)
   aws-sdk-s3 (~> 1)
+  aws-xray-sdk (~> 0.16.0)
   aws_lambda_ric (~> 3.2)
   bootsnap
   brakeman
@@ -506,7 +514,9 @@ CHECKSUMS
   aws-sdk-dynamodb (1.171.0) sha256=e1ce430768704e23faf7a0c243a6f6c0f8ef93f6b821ee93783955d0ea8b5e9c
   aws-sdk-kms (1.130.0) sha256=a2e83662ca31b77a2a19c9aa2f40a98165a67270c18c718fe1c70d0cbd7cd749
   aws-sdk-s3 (1.228.1) sha256=8865f6c6d068a9713a2aa6fe8107d11b0020a93cd5110b3994526bd9560f553e
+  aws-sdk-xray (1.4.0) sha256=06a70aba845ff3231cd863607953478eecf156d5715fd0926b81fc51c2a9b21b
   aws-sigv4 (1.12.1) sha256=6973ff95cb0fd0dc58ba26e90e9510a2219525d07620c8babeb70ef831826c00
+  aws-xray-sdk (0.16.0) sha256=8bebc9868e4d5ea4bd0240189a70dd0204aa16de93dc53579bb67bc8fc979b43
   aws_lambda_ric (3.2.0) sha256=fdab2c637bf0aa47b1de795d6fe7244572e9f743ac74eb47e1386e3c4c17c269
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
@@ -571,6 +581,7 @@ CHECKSUMS
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
   msgpack (1.8.3) sha256=8bda4a6428d3244e50d6bd55854d354edbada88a4e1f4f5731a39a0f86bee6a1
+  multi_json (1.21.1) sha256=e6126a31808e3b4d19f483c775ceac34df190dffa62adfb63a165ee14ba68080
   multi_test (1.1.0) sha256=e9e550cdd863fb72becfe344aefdcd4cbd26ebf307847f4a6c039a4082324d10
   net-http (0.9.1) sha256=25ba0b67c63e89df626ed8fac771d0ad24ad151a858af2cc8e6a716ca4336996
   net-imap (0.6.6) sha256=96aa4ee50df3060203e649efc341f53480b791d49e150f2fdebf68beb141a8df

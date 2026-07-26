@@ -11,6 +11,13 @@ gem "puma", ">= 5.0"
 gem "lamby", "~> 7.0"
 gem "aws_lambda_ric", "~> 3.2"
 
+# X-Ray tracing — loaded only on Lambda (see config/initializers/xray.rb). The
+# function runs with X-Ray active tracing (infra/), so requiring the SDK's Lambda
+# entrypoint installs a facade context + patches the aws-sdk so DynamoDB/S3 calls
+# show up as subsegments under the invocation. require:false keeps it (and its Rack
+# middleware, which would create a conflicting segment) out of local Puma + tests.
+gem "aws-xray-sdk", "~> 0.16.0", require: false
+
 # --- Data: DynamoDB via Dynamoid ------------------------------------------
 # No Active Record (--skip-active-record). Post and Comment are Dynamoid
 # documents; the tables are created by the CDK stack in infra/ and their names
