@@ -23,6 +23,18 @@ class Post
   # browser (see MediaStorage).
   field :media, :raw, default: []
 
+  # Every post shares this one partition value so the whole feed reads as a
+  # single Query on the by-recency GSI below — see `.recent`.
+  FEED_PARTITION = "POST"
+  field :feed_pk, :string, default: FEED_PARTITION
+
+  # Read the feed newest-first from the server, not in Ruby: a Query on the
+  # constant feed partition, ordered by the range key (created_at). The name is
+  # explicit and stable so it never depends on the (environment-specific,
+  # CDK-generated) table name — the CDK creates the GSI under the same name.
+  global_secondary_index name: "posts_by_recency", hash_key: :feed_pk,
+                         range_key: :created_at, projected_attributes: :all
+
   validates :body, presence: true, length: { maximum: 5_000 }
   validates :author_sub, presence: true
 
@@ -36,10 +48,12 @@ class Post
     (reactions || {}).transform_keys(&:to_s).transform_values(&:to_i).select { |_e, n| n.positive? }
   end
 
-  # Newest first. A real feed would use a GSI on a time key; for the demo a
-  # scan-and-sort keeps the model readable.
+  # Newest first, straight from the by-recency GSI: one Query on the feed
+  # partition with the range key (created_at) walked in reverse. No table Scan,
+  # no Ruby-side sort. Materialized (the feed view both checks empty? and
+  # iterates).
   def self.recent
-    all.sort_by { |p| p.created_at || Time.at(0) }.reverse
+    where(feed_pk: FEED_PARTITION).scan_index_forward(false).to_a
   end
 
   def author
