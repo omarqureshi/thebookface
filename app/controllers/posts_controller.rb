@@ -31,15 +31,12 @@ class PostsController < ApplicationController
         author_sub: current_user.sub, author_name: current_user.name, media: accepted_media
       )
     )
-    if @post.body.present? || @post.media.present?
-      if @post.save
-        return redirect_to @post, notice: "Posted to The Bookface."
-      end
+    if @post.save
+      redirect_to @post, notice: "Posted to The Bookface."
     else
-      @post.errors.add(:base, "Add something to say or a photo.")
+      @posts = Post.recent
+      render :index, status: :unprocessable_entity
     end
-    @posts = Post.recent
-    render :index, status: :unprocessable_entity
   end
 
   def edit; end

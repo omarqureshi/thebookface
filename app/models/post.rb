@@ -35,8 +35,11 @@ class Post
   global_secondary_index name: "posts_by_recency", hash_key: :feed_pk,
                          range_key: :created_at, projected_attributes: :all
 
-  validates :body, presence: true, length: { maximum: 5_000 }
+  # A post needs an author and *something* to show — text or a photo (or both).
+  # Body isn't required on its own: an image-only post is fine.
   validates :author_sub, presence: true
+  validates :body, length: { maximum: 5_000 }
+  validate :body_or_media
 
   # This post's reaction address (see Reaction / the reactions bar).
   def reaction_target
@@ -87,5 +90,13 @@ class Post
   # The S3 object keys of the attached images.
   def media_keys
     media_items.filter_map { |m| m["key"] }
+  end
+
+  private
+
+  def body_or_media
+    return if body.present? || media.present?
+
+    errors.add(:base, "Add something to say or a photo.")
   end
 end
