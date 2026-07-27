@@ -65,6 +65,8 @@ GEM
       activemodel (>= 4)
       aws-sdk-dynamodb (~> 1.0)
       concurrent-ruby (>= 1.0)
+    dynamoid-cdk-schema (0.1.0)
+      dynamoid (>= 3.9, < 4)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     jmespath (1.6.2)
@@ -86,6 +88,7 @@ PLATFORMS
 DEPENDENCIES
   aws-cdk-lib!
   dynamoid (= 3.13.1)
+  dynamoid-cdk-schema
 
 CHECKSUMS
   activemodel (8.1.3) sha256=90c05cbe4cef3649b8f79f13016191ea94c4525ce4a5c0fb7ef909c4b91c8219
@@ -107,6 +110,7 @@ CHECKSUMS
   constructs (0.0.0.20260725025349) sha256=b04203c068a099d9f9ae632b77363cf145c89f4aa91d2db7af1acc4ca3c01a87
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   dynamoid (3.13.1) sha256=7cd54b8aeec0df23fcbff40076982bdf2cab65266592be953c96a30f1602581a
+  dynamoid-cdk-schema (0.1.0) sha256=6bec2aa85ed565c56f94ddcbea8e6297e13c16098790d0c655268e5196ac9d57
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   jmespath (1.6.2) sha256=238d774a58723d6c090494c8879b5e9918c19485f7e840f2c1c7532cf84ebcb1
   jsii-ruby-runtime (0.0.0.20260725025349) sha256=c0a9378a9ea8d02a97762748edb295d637b9678f81409a844cbbf174e6c1e304
