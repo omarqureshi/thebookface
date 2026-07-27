@@ -37,9 +37,10 @@ gem "aws-sdk-dynamodb", "~> 1"
 gem "aws-sdk-s3", "~> 1"
 
 # Profile changes are reconciled onto denormalized author fields via an SQS queue
-# (a Lambda consumes it). Only used when a queue is configured (production), so
-# it's lazy-required — local dev/test reconcile inline without it.
-gem "aws-sdk-sqs", "~> 1", require: false
+# (a Lambda consumes it). Required at boot (not lazy) so the X-Ray SDK patches
+# the SQS client at init, the same as DynamoDB/S3 — a client built *after* the
+# patch rejects the :xray_recorder option X-Ray injects, and 500s.
+gem "aws-sdk-sqs", "~> 1"
 
 # --- Auth: Cognito (Google social login) over OIDC ------------------------
 # The app speaks OIDC to the Cognito user pool; Google is configured as a

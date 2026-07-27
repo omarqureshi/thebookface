@@ -49,7 +49,8 @@ module ProfileReconciliation
   end
 
   def sqs
-    require "aws-sdk-sqs" # lazy — only production (with a queue) needs it loaded
+    # aws-sdk-sqs is required at boot (see the Gemfile) so X-Ray patches the
+    # client; building it here needs no extra require.
     @sqs ||= Aws::SQS::Client.new
   end
 end
