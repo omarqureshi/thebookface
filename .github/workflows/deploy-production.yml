@@ -1,9 +1,13 @@
 name: Deploy Production
 
-# Production is deliberate: manual dispatch only. Add required reviewers to the
-# "production" environment (repo Settings -> Environments) to gate every run
-# behind an approval.
+# Production ships from a version tag on proven main: tag a commit `vX.Y.Z` and
+# push it (`git tag v1.2.0 && git push origin v1.2.0`), or publish a GitHub
+# Release, and this deploys TheBookface-prod. The "production" environment's
+# required reviewers (repo Settings -> Environments) gate every run behind an
+# approval; workflow_dispatch stays as a manual fallback (e.g. re-deploy a tag).
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 concurrency:

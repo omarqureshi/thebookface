@@ -1,10 +1,12 @@
 name: Deploy Staging
 
-# Staging is continuous delivery: every push to main redeploys
-# TheBookface-staging. Also runnable on demand.
+# Staging tracks the `staging` branch, not main: merge a feature there to
+# validate it on real infra, then promote to main once it's proven. main stays
+# pristine (it deploys nothing — production ships from a tag). Also runnable on
+# demand against any branch.
 on:
   push:
-    branches: [main]
+    branches: [staging]
   workflow_dispatch:
 
 concurrency:

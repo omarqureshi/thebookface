@@ -1,0 +1,20 @@
+name: CI
+
+# The proving gate. Runs the full suite (RSpec + Cucumber, incl. the headless-
+# Chrome upload spec) in the same test container used locally, on every pull
+# request. Make this a required check on `staging` and `main` (repo Settings ->
+# Branches) so only proven code is ever merged.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: RSpec + Cucumber (docker compose test container)
+        # Brings up DynamoDB Local + MinIO (via depends_on) and runs
+        # `bundle exec rspec && bundle exec cucumber` — see compose.yaml.
+        run: docker compose --profile test run --rm tests
