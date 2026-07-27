@@ -77,6 +77,16 @@ class BookfaceStack < AWSCDK::Stack
     reactions = DynamoSchema.table(self, "Reactions", Reaction, removal_policy: @removal_policy)
     profiles  = DynamoSchema.table(self, "Profiles", Profile, removal_policy: @removal_policy)
 
+    # Profile changes fan out to the denormalized author fields asynchronously: a
+    # profile save drops the user's sub here, the Lambda consumes it (see the SQS
+    # branch in LambdaHandler) and reconciles. Failures retry, then land in the DLQ.
+    reconcile_dlq = AWSCDK::SQS::Queue.new(self, "ReconcileDLQ",
+                                           { retention_period: AWSCDK::Duration.days(14) })
+    reconcile_queue = AWSCDK::SQS::Queue.new(self, "ReconcileQueue", {
+                                               visibility_timeout: AWSCDK::Duration.seconds(120),
+                                               dead_letter_queue: { max_receive_count: 5, queue: reconcile_dlq }
+                                             })
+
     # --- Media: private S3 bucket, browser-uploaded, CloudFront-served --------
     # Images are uploaded straight from the browser with presigned POSTs (bytes
     # never pass through Lambda). The bucket stays private; CloudFront serves it
@@ -180,7 +190,8 @@ class BookfaceStack < AWSCDK::Stack
           File.expand_path("../..", __dir__),
           # Declare the handler in ImageConfig rather than relying on the Dockerfile
           # CMD — real Lambda honours either, local emulators don't always.
-          { cmd: ["config/environment.Lamby.cmd"] }
+          # BookfaceHandler routes HTTP events to Lamby and SQS events to the reconcile.
+          { cmd: ["config/environment.BookfaceHandler.call"] }
         ),
         memory_size: @config[:memory_size],
         timeout: AWSCDK::Duration.seconds(60),
@@ -199,6 +210,7 @@ class BookfaceStack < AWSCDK::Stack
           "COMMENTS_TABLE" => comments.table_name,
           "REACTIONS_TABLE" => reactions.table_name,
           "PROFILES_TABLE" => profiles.table_name,
+          "RECONCILE_QUEUE_URL" => reconcile_queue.queue_url,
           "MEDIA_BUCKET" => media.bucket_name,
           "MEDIA_PUBLIC_URL" => "https://#{media_cdn.distribution_domain_name}",
           # OIDC issuer for the user pool — the app discovers endpoints from here.
@@ -216,6 +228,11 @@ class BookfaceStack < AWSCDK::Stack
     comments.grant_read_write_data(rails)
     reactions.grant_read_write_data(rails)
     profiles.grant_read_write_data(rails)
+
+    # The app enqueues reconcile messages; the same function consumes them (the
+    # event source grants receive/delete + wires the trigger).
+    reconcile_queue.grant_send_messages(rails)
+    rails.add_event_source(AWSCDK::LambdaEventSources::SQSEventSource.new(reconcile_queue, { batch_size: 10 }))
     # Uploads are presigned (s3:PutObject); deleting a post also reaps its images
     # server-side (s3:DeleteObject). No read grant — CloudFront serves the bucket.
     media.grant_put(rails)

@@ -36,6 +36,11 @@ gem "aws-sdk-dynamodb", "~> 1"
 # MinIO stands in for S3 locally (see compose.yaml).
 gem "aws-sdk-s3", "~> 1"
 
+# Profile changes are reconciled onto denormalized author fields via an SQS queue
+# (a Lambda consumes it). Only used when a queue is configured (production), so
+# it's lazy-required — local dev/test reconcile inline without it.
+gem "aws-sdk-sqs", "~> 1", require: false
+
 # --- Auth: Cognito (Google social login) over OIDC ------------------------
 # The app speaks OIDC to the Cognito user pool; Google is configured as a
 # federated identity provider *inside* Cognito, so the app only ever talks to

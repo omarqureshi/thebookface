@@ -7,12 +7,16 @@
 module ProfileReconciliation
   module_function
 
-  # Called after a profile save. Slice 2b drops the sub on an SQS queue (a Lambda
-  # consumes it and calls #run), so the save doesn't wait on the fan-out; until
-  # then it reconciles inline, which keeps the denormalization correct anywhere
-  # there's no queue (local dev/test).
+  # Called after a profile save. In production it drops the sub on the SQS queue
+  # (a Lambda consumes it and calls #run), so the save doesn't wait on the
+  # fan-out; with no queue configured (local dev/test) it reconciles inline,
+  # which keeps the denormalization correct there too.
   def enqueue(sub)
-    run(sub)
+    if queue_url.present?
+      sqs.send_message(queue_url: queue_url, message_body: sub)
+    else
+      run(sub)
+    end
   end
 
   # The reconcile itself — safe to call directly (the rake task + SQS handler do).
@@ -36,5 +40,16 @@ module ProfileReconciliation
       count += 1
     end
     count
+  end
+
+  # --- internals ---
+
+  def queue_url
+    ENV["RECONCILE_QUEUE_URL"]
+  end
+
+  def sqs
+    require "aws-sdk-sqs" # lazy — only production (with a queue) needs it loaded
+    @sqs ||= Aws::SQS::Client.new
   end
 end

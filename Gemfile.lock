@@ -100,6 +100,9 @@ GEM
       aws-sdk-core (~> 3, >= 3.254.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
+    aws-sdk-sqs (1.117.0)
+      aws-sdk-core (~> 3, >= 3.254.0)
+      aws-sigv4 (~> 1.5)
     aws-sdk-xray (1.4.0)
       aws-sdk-core (~> 3)
       aws-sigv4 (~> 1.0)
@@ -482,6 +485,7 @@ PLATFORMS
 DEPENDENCIES
   aws-sdk-dynamodb (~> 1)
   aws-sdk-s3 (~> 1)
+  aws-sdk-sqs (~> 1)
   aws-xray-sdk (~> 0.16.0)
   aws_lambda_ric (~> 3.2)
   base64
@@ -531,6 +535,7 @@ CHECKSUMS
   aws-sdk-dynamodb (1.171.0) sha256=e1ce430768704e23faf7a0c243a6f6c0f8ef93f6b821ee93783955d0ea8b5e9c
   aws-sdk-kms (1.130.0) sha256=a2e83662ca31b77a2a19c9aa2f40a98165a67270c18c718fe1c70d0cbd7cd749
   aws-sdk-s3 (1.228.1) sha256=8865f6c6d068a9713a2aa6fe8107d11b0020a93cd5110b3994526bd9560f553e
+  aws-sdk-sqs (1.117.0) sha256=cdfebf190a26f1ccb7396ad3edfa23253909d1b8961676b4b58a953d78424472
   aws-sdk-xray (1.4.0) sha256=06a70aba845ff3231cd863607953478eecf156d5715fd0926b81fc51c2a9b21b
   aws-sigv4 (1.12.1) sha256=6973ff95cb0fd0dc58ba26e90e9510a2219525d07620c8babeb70ef831826c00
   aws-xray-sdk (0.16.0) sha256=8bebc9868e4d5ea4bd0240189a70dd0204aa16de93dc53579bb67bc8fc979b43
