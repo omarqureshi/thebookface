@@ -5,8 +5,13 @@ source "https://rubygems.org"
 # dependencies. At GA this collapses to a plain RubyGems.org dependency.
 gem "aws-cdk-lib", source: "https://rubygems.omarqureshi.net"
 
-# Loaded at synth to read each table's schema straight from the app's Dynamoid
-# models (support/dynamo_schema.rb) — one source of truth for keys and indexes.
+# Loaded at synth so dynamoid-cdk-schema can read each table's keys and indexes
+# straight from the app's Dynamoid models — one source of truth for both.
 # Pinned to the app's version (its Gemfile.lock) so infra reads the models with
 # exactly the Dynamoid the app runs — keep the two in step.
 gem "dynamoid", "3.13.1"
+
+# Reads the Dynamoid models above and builds the CDK tables (the stack calls
+# Dynamoid::CDK::Schema.table). Extracted from this app's own infra and published,
+# so the model stays the single source of truth for keys and indexes.
+gem "dynamoid-cdk-schema"

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "aws-cdk-lib"
+require "dynamoid/cdk/schema"
 require_relative "../config/environments"
-require_relative "../support/dynamo_schema"
+require_relative "../support/app_models" # loads the app's Dynamoid models to introspect
 
 # The entire deployment for The Bookface, in Ruby. This is what you'd otherwise
 # hand-write as a SAM/CloudFormation template — instead it's the CDK construct
@@ -65,17 +66,17 @@ class BookfaceStack < AWSCDK::Stack
     @auto_delete_objects = !config[:retain_data]
 
     # Each table's schema — keys and indexes — is read straight from its Dynamoid
-    # model (see support/dynamo_schema.rb), so infra never restates what the app
+    # model by the dynamoid-cdk-schema gem, so infra never restates what the app
     # already declares:
     #   * Posts, plus a by-recency GSI so the feed is one Query, not a Scan.
     #   * Comments: partitioned by post, sorted by the materialized `path`, so a
     #     Query returns the whole thread pre-ordered.
     #   * Reactions (one emoji per user per target): partitioned by post, sorted
     #     by "<user_sub>#<target>" so a user's reactions load in a single Query.
-    posts     = DynamoSchema.table(self, "Posts", Post, removal_policy: @removal_policy)
-    comments  = DynamoSchema.table(self, "Comments", Comment, removal_policy: @removal_policy)
-    reactions = DynamoSchema.table(self, "Reactions", Reaction, removal_policy: @removal_policy)
-    profiles  = DynamoSchema.table(self, "Profiles", Profile, removal_policy: @removal_policy)
+    posts     = Dynamoid::CDK::Schema.table(self, "Posts", Post, removal_policy: @removal_policy)
+    comments  = Dynamoid::CDK::Schema.table(self, "Comments", Comment, removal_policy: @removal_policy)
+    reactions = Dynamoid::CDK::Schema.table(self, "Reactions", Reaction, removal_policy: @removal_policy)
+    profiles  = Dynamoid::CDK::Schema.table(self, "Profiles", Profile, removal_policy: @removal_policy)
 
     # Profile changes fan out to the denormalized author fields asynchronously: a
     # profile save drops the user's sub here, the Lambda consumes it (see the SQS
