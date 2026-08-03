@@ -28,7 +28,12 @@ module Bookface
       region: ENV["BOOKFACE_STAGING_REGION"],
       retain_data: false, # tear tables/bucket down with the stack
       memory_size: 1024,
-      domain: "staging.#{HOSTED_ZONE_NAME}"
+      # Released to the bookface-rpc (Foobara) stack, which now serves
+      # staging.thebookface.net. CloudFront will not serve one alternate domain
+      # name from two distributions, so this has to give the name up before the
+      # other stack can claim it — nil takes the Function-URL fallback the stack
+      # already supports.
+      domain: nil
     },
     "prod" => {
       account: ENV["BOOKFACE_PROD_ACCOUNT"],
