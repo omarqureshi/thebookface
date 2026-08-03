@@ -28,12 +28,17 @@ module Bookface
       region: ENV["BOOKFACE_STAGING_REGION"],
       retain_data: false, # tear tables/bucket down with the stack
       memory_size: 1024,
-      # Released to the bookface-rpc (Foobara) stack, which now serves
-      # staging.thebookface.net. CloudFront will not serve one alternate domain
-      # name from two distributions, so this has to give the name up before the
-      # other stack can claim it — nil takes the Function-URL fallback the stack
-      # already supports.
-      domain: nil
+      # Moved aside so the bookface-rpc (Foobara) stack can take
+      # staging.thebookface.net: CloudFront will not serve one alternate domain
+      # name from two distributions.
+      #
+      # Renamed rather than set to nil. The nil path — the raw Function URL —
+      # looks like the obvious way to release a name, but it does not deploy:
+      # app_base then becomes the Function URL attribute, which the Cognito
+      # client's callback depends on, while the function depends on the client's
+      # id and secret. CloudFormation rejects the cycle. That fallback predates
+      # the Cognito wiring and has not been exercised since.
+      domain: "rails-staging.#{HOSTED_ZONE_NAME}"
     },
     "prod" => {
       account: ENV["BOOKFACE_PROD_ACCOUNT"],
